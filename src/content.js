@@ -59,88 +59,59 @@ function getBase64Image(blob) {
 
         reader.readAsDataURL(blob);
         reader.onloadend = function() {
+            const split = reader.result.split(',');
+            var base = split[0];
+            base = base.split('/')[1].split(';')[0];
+            console.log(reader.result.split(',')[0])
             base64data = reader.result.split(',')[1];
-            resolve(base64data);
+            resolve([base, base64data]);
         }
     })
 
 }
 
-function drawBox({box, img, ocr, tsl}) {
+function drawBox({box, wrapper, ocr, tsl}) {
     const [l,b,r,t] = box;
-    const rect = img.getBoundingClientRect();
-    const {bottom, left} = rect;
-
-    // const div = document.createElement('div');
-    // div.style.position = 'absolute';
-    // div.style.border = '2px solid red';
-    // div.style.width = `${r-l}px`;
-    // div.style.height = `${t-b}px`;
-    // div.style.bottom = `${bottom-t}px`;
-    // div.style.left = `${left+l}px`;
-    // div.style.zIndex = 9
-    // div.style.pointerEvents = 'none'
 
     const text = document.createElement('div');
-    text.style.position = 'absolute';
-    text.style.border = '2px solid red';
+    text.className = 'patch-text'
+    text.innerHTML = `${tsl}`
     text.style.width = `${r-l}px`;
     text.style.height = `${t-b}px`;
-    text.style.bottom = `${bottom-t}px`;
-    text.style.left = `${left+l}px`;
-    text.style.zIndex = 9
-    text.style.pointerEvents = 'none'
-    text.style.backgroundColor = 'white'
-    text.style.color = 'black'
-    text.style.opacity = 0.8,
-    text.style.fontSize = '12px'
-    text.style.fontFamily = 'monospace'
-    text.style.padding = '2px'
-    text.style.textAlign = 'center'
-    text.style.verticalAlign = 'middle'
-    // text.style.lineHeight = `${t-b}px`
-    text.innerHTML = `${ocr}<br>${tsl}`
+    text.style.top = `${b}px`;
+    text.style.left = `${l}px`;
 
-    document.body.appendChild(text);
+    wrapper.appendChild(text);
+
+    return text;
 }
 
+/* TODO
+- Make textboxes resize with images
+- Make script sensitive to img changed with JS
+- Avoid spamming server with requests
+- Implement browser action to communicate with server (e.g. model selection)
+- Implement browser action to toggle on/off
+*/
 document.querySelectorAll('img').forEach((img) => {
-    console.log(img.src)
-    // axios.get(img.src).then((res) => {
-    //     const data = res.data
-    //     console.log(typeof data)
-    //     console.log(data)
-    //     const blob = new Blob([data], {type: 'image/jpeg'})
-    //     console.log(typeof blob)
-    //     console.log(blob)
-    //     const md5Hash = md5(blob).toString()
-    //     console.log(md5Hash)
-    // })
-    fetch(img.src).then((res) => {
-        console.log('RES', res)
-        // console.log('RES', res.arrayBuffer())
-        // md5.di
-        return res.blob()
-    }).then(async (blob) => {
-        // const wrapper = document.createElement('div');
+    fetch(img.src).then((res) => res.blob())
+    .then(async (blob) => {
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(img.cloneNode(true));
 
-        // wrapper.appendChild(img.cloneNode(true));
+        wrapper.className = 'wrapper'
+        // wrapper.style.width = img.width + 'px';
+        // wrapper.style.height = img.height + 'px';
 
-        var rect = img.getBoundingClientRect();
-        var {top, left, right, bottom} = rect;
+        img.replaceWith(wrapper);
 
-        console.log('RECT', rect)
-
-        // console.log('BLOB', blob)
-        var base64data = await getBase64Image(blob);
-        // console.log(base64data)
-        // const base64 = Base64.stringify(blob);
+        const [fmt, base64data] = await getBase64Image(blob);
+        if ( ! ['jpeg', 'png', 'gif'].includes(fmt) ) {
+            return;
+        }
         const md5Hash = md5(base64data).toString();
-        // const md5Hash = md5(blob);
-        console.log(md5Hash)
+        // console.log(md5Hash)
 
-        // console.log('POSTING')
-        // console.log(`${ENDPOINT}/test/`)
         axios.post(`${ENDPOINT}/test/`, {
             url: img.src,
             md5: md5Hash,
@@ -149,31 +120,17 @@ document.querySelectorAll('img').forEach((img) => {
             headers: headers
         })
         .then((res) => {
-            console.log(res)
             const result = res.data.result;
-            // console.log(boxes)
             result.forEach(({ocr, tsl, box}) => {
                 console.log(ocr, tsl, box)
-                drawBox({img, ocr, tsl, box});
+                const textdiv = drawBox({wrapper, ocr, tsl, box});
+                textdiv.addEventListener('click', () => {
+                    navigator.clipboard.writeText(ocr);
+                })
             })
-            // console.log(response);
         })
         .catch(function (error) {
             console.log(error);
         });
-        // img.replaceWith(wrapper);
     })
-    // img.addEventListener('click', (e) => {
-    //     console.log('img clicked')
-    //     console.log(e.target.src)
-    //     // axios.post('http://localhost:8000/api/collected_images/', {
-    //     //     url: e.target.src
-    //     // })
-    //     // .then(function (response) {
-    //     //     console.log(response);
-    //     // })
-    //     // .catch(function (error) {
-    //     //     console.log(error);
-    //     // }); 
-    // })
 })

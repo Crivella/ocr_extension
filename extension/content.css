@@ -1,0 +1,37 @@
+.wrapper {
+    position: relative;
+    border: 2px solid #1aff00;
+    justify-content: center;
+    display: inline-block;
+}
+
+.wrapper .image {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.patch-text {
+    position: absolute;
+
+    background-color: rgb(255, 255, 255, 0.8);
+    border: 2px solid #ff0000;
+    color: #000;
+    /* visibility: hidden; */
+    /* opacity: 0.8; */
+    /* transition: visibility 0s, opacity 0.5s linear; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2px;
+    font-family: monospace;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.patch-text:hover {
+    filter: brightness(80%);
+    cursor: pointer;
+}

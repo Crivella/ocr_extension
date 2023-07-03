@@ -59,28 +59,49 @@ function getBase64Image(blob) {
 
         reader.readAsDataURL(blob);
         reader.onloadend = function() {
-            base64data = reader.result;
+            base64data = reader.result.split(',')[1];
             resolve(base64data);
         }
     })
 
 }
 
-function drawBox(box, img) {
+function drawBox({box, img, ocr, tsl}) {
     const [l,b,r,t] = box;
     const rect = img.getBoundingClientRect();
     const {bottom, left} = rect;
 
-    const div = document.createElement('div');
-    div.style.position = 'absolute';
-    div.style.border = '2px solid red';
-    div.style.width = `${r-l}px`;
-    div.style.height = `${t-b}px`;
-    div.style.bottom = `${bottom-t}px`;
-    div.style.left = `${left+l}px`;
-    div.style.zIndex = 9
-    div.style.pointerEvents = 'none'
-    document.body.appendChild(div);
+    // const div = document.createElement('div');
+    // div.style.position = 'absolute';
+    // div.style.border = '2px solid red';
+    // div.style.width = `${r-l}px`;
+    // div.style.height = `${t-b}px`;
+    // div.style.bottom = `${bottom-t}px`;
+    // div.style.left = `${left+l}px`;
+    // div.style.zIndex = 9
+    // div.style.pointerEvents = 'none'
+
+    const text = document.createElement('div');
+    text.style.position = 'absolute';
+    text.style.border = '2px solid red';
+    text.style.width = `${r-l}px`;
+    text.style.height = `${t-b}px`;
+    text.style.bottom = `${bottom-t}px`;
+    text.style.left = `${left+l}px`;
+    text.style.zIndex = 9
+    text.style.pointerEvents = 'none'
+    text.style.backgroundColor = 'white'
+    text.style.color = 'black'
+    text.style.opacity = 0.8,
+    text.style.fontSize = '12px'
+    text.style.fontFamily = 'monospace'
+    text.style.padding = '2px'
+    text.style.textAlign = 'center'
+    text.style.verticalAlign = 'middle'
+    // text.style.lineHeight = `${t-b}px`
+    text.innerHTML = `${ocr}<br>${tsl}`
+
+    document.body.appendChild(text);
 }
 
 document.querySelectorAll('img').forEach((img) => {
@@ -114,9 +135,9 @@ document.querySelectorAll('img').forEach((img) => {
         var base64data = await getBase64Image(blob);
         // console.log(base64data)
         // const base64 = Base64.stringify(blob);
-        const md5Hash = md5(blob).toString();
+        const md5Hash = md5(base64data).toString();
         // const md5Hash = md5(blob);
-        // console.log(md5Hash)
+        console.log(md5Hash)
 
         // console.log('POSTING')
         // console.log(`${ENDPOINT}/test/`)
@@ -128,9 +149,13 @@ document.querySelectorAll('img').forEach((img) => {
             headers: headers
         })
         .then((res) => {
-            const boxes = res.data.boxes;
-            console.log(boxes)
-            boxes.forEach((box) => drawBox(box, img))
+            console.log(res)
+            const result = res.data.result;
+            // console.log(boxes)
+            result.forEach(({ocr, tsl, box}) => {
+                console.log(ocr, tsl, box)
+                drawBox({img, ocr, tsl, box});
+            })
             // console.log(response);
         })
         .catch(function (error) {

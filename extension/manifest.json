@@ -1,0 +1,24 @@
+{
+
+  "manifest_version": 2,
+  "name": "TEST",
+  "version": "1.0",
+
+  "description": "This is a test extension",
+
+  "icons": {
+    "48": "icons/border-48.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://avt.mkklcdnv6temp.com/*"],
+      "js": ["dist/content.js"]
+    }
+  ],
+
+  "permissions": [
+    "<all_urls>"
+  ]
+
+}

@@ -7,21 +7,35 @@ const GlobalContext = createContext();
 const defaultEndpoint = 'http://127.0.0.1:4000';
 
 function EndpointField() {
-    const { endpoint, setEndpoint } = useContext(GlobalContext);
+    const { endpoint, setEndpoint, successEndpoint: success } = useContext(GlobalContext);
 
     const [endpointInput, setEndpointInput] = useState(endpoint);
+    const [myClass, setClass] = useState(''); // ['success', 'error', '']
 
     const onSubmit = (e) => {
         e.preventDefault();
         console.log(endpoint);
         setEndpoint(endpointInput);
     }
+
+
+    useEffect(() => {
+        if (success === null) {
+            setClass('');
+        } else if (success) {
+            setClass('success');
+        } else {
+            setClass('error');
+        }
+    }, [success])
+
     
     return (
         <div className="field">
             <label htmlFor="endpoint">Endpoint</label>
             <input 
                 type="text" id="endpoint" name="endpoint" 
+                className={myClass}
                 value={endpointInput} 
                 onChange={(e) => setEndpointInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -96,11 +110,13 @@ function Popup() {
     const [ocrModels, setOcrModels] = useState([]);
     const [tslModels, setTslModels] = useState([]);
     const [success, setSuccess] = useState(null);
+    const [successEndpoint, setSuccessEndpoint] = useState(null);
 
     useEffect(() => {
         axios.get(`${endpoint}/`)
             .then(res => {
                 console.log(res.data);
+                setSuccessEndpoint(true);
                 setOcrModels(res.data.OCRModels);
                 setTslModels(res.data.TSLModels);
                 setOcrModel(res.data.ocr_selected || '');
@@ -108,6 +124,7 @@ function Popup() {
             })
             .catch(err => {
                 console.log(err);
+                setSuccessEndpoint(false);
             })
     }, [endpoint])
 
@@ -125,6 +142,7 @@ function Popup() {
         ocrModels: ocrModels,
         tslModels: tslModels,
         success: success,
+        successEndpoint: successEndpoint,
     }
 
 

@@ -103,10 +103,10 @@ var ENDPOINT = 'http://127.0.0.1:4000';
                 console.log('not supported format', fmt, 'falling back to canvas');
                 const c = document.createElement('canvas');
                 const ctx = c.getContext('2d');
-                c.width = img.width;
-                c.height = img.height;
+                c.width = img.naturalWidth;
+                c.height = img.naturalHeight;
                 // console.log(img.width, img.height);
-                ctx.drawImage(img, 0, 0, img.width, img.height);
+                ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
                 blob = await new Promise((resolve, reject) => {
                     c.toBlob((blob) => {
                         resolve(blob);
@@ -172,11 +172,12 @@ var ENDPOINT = 'http://127.0.0.1:4000';
     })
 
     /* TODO
-    - Make tool work by intercepting requests (eg cant refetch image from server)
-    - Make textboxes resize with images
+    ~ Make tool work by intercepting requests (eg cant refetch image from server)
+      (Workaround: use canvas to get base64 data)
+    X Make textboxes resize with images
     - Make script sensitive to img changed with JS
     - Avoid spamming server with requests
-    - Implement browser action to communicate with server (e.g. model selection)
+    X Implement browser action to communicate with server (e.g. model selection)
     - Implement browser action to toggle on/off
     */
 })();

@@ -7,7 +7,13 @@
   "description": "This is a test extension",
 
   "icons": {
-    "48": "icons/border-48.png"
+    "48": "icons/language-48.png"
+  },
+
+  "browser_action": {
+    "default_icon": "icons/language-48.png",
+    "default_title": "TEST",
+    "default_popup": "popup.html"
   },
 
   "background": {

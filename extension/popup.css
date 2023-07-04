@@ -1,0 +1,14 @@
+.field {
+    display: flex;
+    /* flex-direction: column; */
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.success {
+    background-color: rgb(95, 138, 95);
+}
+
+.error {
+    background-color: rgb(138, 95, 95);
+}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import md5 from 'md5';
 
-const ENDPOINT = 'http://127.0.0.1:4000'
+const ENDPOINT = 'http://127.0.0.1:4000';
 // axios.defaults.xsrfHeaderName = 'X-CSRFToken'
 // axios.defaults.xsrfCookieName = 'csrftoken'
 // axios.defaults.withCredentials = true
@@ -28,11 +28,10 @@ const ENDPOINT = 'http://127.0.0.1:4000'
             reader.readAsDataURL(blob);
             reader.onloadend = function() {
                 const split = reader.result.split(',');
-                var base = split[0];
-                base = base.split('/')[1].split(';')[0];
-                console.log(reader.result.split(',')[0])
+                const fmt = split[0].split('/')[1].split(';')[0];
+                console.log(fmt)
                 base64data = reader.result.split(',')[1];
-                resolve([base, base64data]);
+                resolve([fmt, base64data]);
             }
         })
 
@@ -86,7 +85,15 @@ const ENDPOINT = 'http://127.0.0.1:4000'
             const md5Hash = md5(base64data);
             // console.log(md5Hash);
             // console.log(msg.srcUrl);
-            
+            var ocr;
+            try {
+                ocr = await getOcr(md5Hash, base64data);
+            }
+            catch (err) {
+                console.log(err);
+                return;
+            }
+  
             const wrapper = document.createElement('div');
             if (img.classList.length > 0) {
                 wrapper.classList.add(img.classList);
@@ -96,7 +103,6 @@ const ENDPOINT = 'http://127.0.0.1:4000'
             wrapper.appendChild(img.cloneNode(true));
             img.replaceWith(wrapper);
 
-            const ocr = await getOcr(md5Hash, base64data);
             // console.log(ocr);
             ocr.result.forEach(({ocr, tsl, box}) => {
                 // console.log(ocr, tsl, box)
@@ -109,6 +115,7 @@ const ENDPOINT = 'http://127.0.0.1:4000'
     })
 
     /* TODO
+    - Make tool work by intercepting requests (eg cant refetch image from server)
     - Make textboxes resize with images
     - Make script sensitive to img changed with JS
     - Avoid spamming server with requests

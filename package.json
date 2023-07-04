@@ -18,6 +18,14 @@
   "devDependencies": {
     "babel-core": "6.24.1",
     "babel-loader": "7.0.0",
+    "babel-preset-react": "^6.24.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "webpack": "2.6.1"
+  },
+  "babel": {
+    "presets": [
+      "react"
+    ]
   }
 }

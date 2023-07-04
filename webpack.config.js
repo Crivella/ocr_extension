@@ -10,7 +10,7 @@ module.exports = {
     // For example, you could add a background script like:
     background: 'background.js',
     content: 'content.js',
-    // popup: 'popup.js',
+    popup: 'popup.js',
     // 'navigate-collection': 'navigate-collection.js',
   },
   output: {

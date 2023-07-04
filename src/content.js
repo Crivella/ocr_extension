@@ -123,40 +123,52 @@ var ENDPOINT = 'http://127.0.0.1:4000';
 
             const newImg = img.cloneNode(true);
             newImg.addEventListener('load', onImageReload);
-            newImg.classList.add('ocr-loading');
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    console.log(mutation);
-                    if (mutation.attributeName === 'src') {
-                        console.log('src changed');
-                        onImageReload();
-                    }
-                })
-            })
-            observer.observe(newImg, {attributes: true});
+            // const observer = new MutationObserver((mutations) => {
+            //     mutations.forEach((mutation) => {
+            //         console.log(mutation);
+            //         if (mutation.attributeName === 'src') {
+            //             console.log('src changed');
+            //             onImageReload();
+            //         }
+            //     })
+            // })
+            // observer.observe(newImg, {attributes: true});
+            img.classList.add('ocr-loading');
             try {
                 ocr = await getOcr(md5Hash, base64data);
             } catch (err) {
                 console.log(err);
-                newImg.classList.add('ocr-error');
-                newImg.addEventListener('click', (e) => {
+                img.classList.add('ocr-error');
+                img.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    newImg.classList.remove('ocr-error');
+                    img.classList.remove('ocr-error');
                 })
                 return;
             } finally {
-                newImg.classList.remove('ocr-loading');
+                img.classList.remove('ocr-loading');
 
             }
-  
-            const wrapper = document.createElement('div');
+            
+            // This is necessary since some sites can replace an already wrapped image
+            // using JS (at somepoint this should be detected automatically) 
+            var wrapper;
+            var wasWrapped = false;
+            if (img.parentNode.classList.contains('wrapper')) {
+                wrapper = img.parentNode;
+                wasWrapped = true;
+            } else {
+                wrapper = document.createElement('div');
+            }
             if (newImg.classList.length > 0) {
                 wrapper.classList.add(newImg.classList);
             }
             newImg.classList.add('wrapped');
             wrapper.classList.add('wrapper');
-            wrapper.appendChild(newImg);
+
+            if (!wasWrapped) {
+                wrapper.appendChild(newImg);
+            }
             
             // console.log(ocr);
             ocr.result.forEach(({ocr, tsl, box}) => {
@@ -167,7 +179,11 @@ var ENDPOINT = 'http://127.0.0.1:4000';
                     navigator.clipboard.writeText(ocr);
                 })
             })
-            img.replaceWith(wrapper);
+            if (!wasWrapped) {
+                img.replaceWith(wrapper);
+            } else {
+                img.replaceWith(newImg);
+            }
         }
     })
 

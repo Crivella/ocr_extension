@@ -38,19 +38,14 @@ const ENDPOINT = 'http://127.0.0.1:4000';
     }
 
     async function getOcr(md5Hash, base64data) {
-        try {
-            const res = await axios.post(`${ENDPOINT}/test/`, {
-                md5: md5Hash,
-                contents: base64data,
-            }, {
-                // headers: headers,
-            })
+        const res = await axios.post(`${ENDPOINT}/test/`, {
+            md5: md5Hash,
+            contents: base64data,
+        }, {
+            // headers: headers,
+        })
 
-            return res.data;
-        }
-        catch (err) {
-            console.log(err)
-        }
+        return res.data;
     }
 
     function drawBox({box, wrapper, ocr, tsl}) {
@@ -86,12 +81,22 @@ const ENDPOINT = 'http://127.0.0.1:4000';
             // console.log(md5Hash);
             // console.log(msg.srcUrl);
             var ocr;
+
+            img.classList.add('ocr-loading');
             try {
                 ocr = await getOcr(md5Hash, base64data);
-            }
-            catch (err) {
+            } catch (err) {
                 console.log(err);
+                img.classList.add('ocr-error');
+                img.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    img.classList.remove('ocr-error');
+                })
                 return;
+            } finally {
+                img.classList.remove('ocr-loading');
+
             }
   
             const wrapper = document.createElement('div');

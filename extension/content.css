@@ -15,7 +15,7 @@
     position: absolute;
 
     background-color: rgb(255, 255, 255, 0.8);
-    border: 2px solid #ff0000;
+    border: 1px solid #636363;
     color: #000;
     /* visibility: hidden; */
     /* opacity: 0.8; */
@@ -34,4 +34,13 @@
 .patch-text:hover {
     filter: brightness(80%);
     cursor: pointer;
+}
+
+.ocr-loading {
+    filter: blur(5px);
+}
+
+.ocr-error {
+    border: 2px solid #ff0000;
+    filter: blur(1px);
 }

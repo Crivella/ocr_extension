@@ -10,16 +10,15 @@
     "48": "icons/border-48.png"
   },
 
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["dist/content.js"],
-      "css": ["content.css"]
-    }
-  ],
+  "background": {
+    "scripts": ["dist/background.js"]
+  },
 
   "permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "activeTab",
+    "tabs",
+    "menus"
   ]
 
 }

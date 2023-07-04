@@ -113,6 +113,15 @@ function Popup() {
     const [successEndpoint, setSuccessEndpoint] = useState(null);
 
     useEffect(() => {
+        browser.tabs.query({active: true, currentWindow: true})
+            .then((tabs) => {
+                console.log(tabs);
+                const tab = tabs[0];
+                browser.tabs.sendMessage(tab.id, {
+                    type: 'set-endpoint',
+                })
+            })
+
         axios.get(`${endpoint}/`)
             .then(res => {
                 console.log(res.data);

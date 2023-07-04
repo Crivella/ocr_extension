@@ -1,7 +1,7 @@
 import axios from 'axios';
 import md5 from 'md5';
 
-const ENDPOINT = 'http://127.0.0.1:4000';
+var ENDPOINT = 'http://127.0.0.1:4000';
 // axios.defaults.xsrfHeaderName = 'X-CSRFToken'
 // axios.defaults.xsrfCookieName = 'csrftoken'
 // axios.defaults.withCredentials = true
@@ -12,14 +12,19 @@ const ENDPOINT = 'http://127.0.0.1:4000';
     }
     window.hasRun5124677111 = true;
 
+    const textboxes = [];
+
     async function fetchBlobFromUrl(url) {
+        console.log('FETCHING', url);
+
         const res = await fetch(url);
         const blob = await res.blob();
-        
+        console.log(blob);
+
         return blob;
     }
 
-    function getBase64Image(blob) {
+    function blobToBase64(blob) {
         var base64data;
         var reader = new FileReader();
 
@@ -48,74 +53,121 @@ const ENDPOINT = 'http://127.0.0.1:4000';
         return res.data;
     }
 
-    function drawBox({box, wrapper, ocr, tsl}) {
+    function drawBox({box, img, tsl}) {
         const [l,b,r,t] = box;
+        const w = r-l;
+        const h = t-b;
+        const naturalWidth = img.naturalWidth;
+        const naturalHeight = img.naturalHeight;
 
         const text = document.createElement('div');
         text.className = 'patch-text'
         text.innerHTML = `${tsl}`
-        text.style.width = `${r-l}px`;
-        text.style.height = `${t-b}px`;
-        text.style.top = `${b}px`;
-        text.style.left = `${l}px`;
+        text.style.width = `${w/naturalWidth*100}%`;
+        text.style.height = `${h/naturalHeight*100}%`;
+        text.style.top = `${b/naturalHeight*100}%`;
+        text.style.left = `${l/naturalWidth*100}%`;
 
-        wrapper.appendChild(text);
+        const size = Math.sqrt(w*h/tsl.length*0.3)/7;
+
+        text.style.fontSize = `${size}vw`;
+        text.style.lineHeight = `${size}vw`;
+
+        textboxes.push(text);
 
         return text;
     }
 
+    function onImageReload() {
+        console.log('image reloaded');
+        textboxes.forEach((textbox) => {
+            textbox.remove();
+        })
+        textboxes.length = 0;
+    }
+
     browser.runtime.onMessage.addListener(async (msg) => {
+        if (msg.type === 'set-endpoint') {
+            ENDPOINT = msg.endpoint;
+        }
         if (msg.type === 'translate-image') {
             const img = document.querySelector('img[src="'+msg.srcUrl+'"]');
             if (img.classList.contains('wrapped')) {
                 return;
             }
-            // console.log(img);
+            // console.log(img.width, img.height);
             
-            const blob = await fetchBlobFromUrl(msg.srcUrl);
-            const [fmt, base64data] = await getBase64Image(blob);
+            var blob = await fetchBlobFromUrl(msg.srcUrl);
+            var [fmt, base64data] = await blobToBase64(blob);
             if ( ! ['jpeg', 'png', 'gif'].includes(fmt) ) {
-                return;
+                console.log('not supported format', fmt, 'falling back to canvas');
+                const c = document.createElement('canvas');
+                const ctx = c.getContext('2d');
+                c.width = img.width;
+                c.height = img.height;
+                // console.log(img.width, img.height);
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                blob = await new Promise((resolve, reject) => {
+                    c.toBlob((blob) => {
+                        resolve(blob);
+                    })
+                })
+                const res = await blobToBase64(blob);
+                base64data = res[1];
+                // return;
             }
             const md5Hash = md5(base64data);
-            // console.log(md5Hash);
-            // console.log(msg.srcUrl);
+            console.log(md5Hash);
+            console.log(msg.srcUrl);
             var ocr;
 
-            img.classList.add('ocr-loading');
+            const newImg = img.cloneNode(true);
+            newImg.addEventListener('load', onImageReload);
+            newImg.classList.add('ocr-loading');
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    console.log(mutation);
+                    if (mutation.attributeName === 'src') {
+                        console.log('src changed');
+                        onImageReload();
+                    }
+                })
+            })
+            observer.observe(newImg, {attributes: true});
             try {
                 ocr = await getOcr(md5Hash, base64data);
             } catch (err) {
                 console.log(err);
-                img.classList.add('ocr-error');
-                img.addEventListener('click', (e) => {
+                newImg.classList.add('ocr-error');
+                newImg.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    img.classList.remove('ocr-error');
+                    newImg.classList.remove('ocr-error');
                 })
                 return;
             } finally {
-                img.classList.remove('ocr-loading');
+                newImg.classList.remove('ocr-loading');
 
             }
   
             const wrapper = document.createElement('div');
-            if (img.classList.length > 0) {
-                wrapper.classList.add(img.classList);
+            if (newImg.classList.length > 0) {
+                wrapper.classList.add(newImg.classList);
             }
-            img.classList.add('wrapped');
+            newImg.classList.add('wrapped');
             wrapper.classList.add('wrapper');
-            wrapper.appendChild(img.cloneNode(true));
-            img.replaceWith(wrapper);
-
+            wrapper.appendChild(newImg);
+            
             // console.log(ocr);
             ocr.result.forEach(({ocr, tsl, box}) => {
                 // console.log(ocr, tsl, box)
-                const textdiv = drawBox({wrapper, ocr, tsl, box});
+                const textdiv = drawBox({img, tsl, box});
+                wrapper.appendChild(textdiv);
                 textdiv.addEventListener('click', () => {
                     navigator.clipboard.writeText(ocr);
                 })
             })
+            img.replaceWith(wrapper);
         }
     })
 

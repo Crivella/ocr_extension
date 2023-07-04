@@ -119,6 +119,7 @@ function Popup() {
                 const tab = tabs[0];
                 browser.tabs.sendMessage(tab.id, {
                     type: 'set-endpoint',
+                    endpoint: endpoint,
                 })
             })
 

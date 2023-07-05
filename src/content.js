@@ -31,17 +31,16 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
     }
 
     function blobToBase64(blob) {
-        var base64data;
         var reader = new FileReader();
 
         return new Promise((resolve, reject) => {
-
             reader.readAsDataURL(blob);
             reader.onloadend = function() {
                 const split = reader.result.split(',');
                 const fmt = split[0].split('/')[1].split(';')[0];
                 console.log(fmt)
-                base64data = reader.result.split(',')[1];
+                const base64data = split[1];
+                // console.log(base64data);
                 resolve([fmt, base64data]);
             }
         })
@@ -93,7 +92,7 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
         textboxes.length = 0;
     }
 
-    async function makeCanvasBlob(img) {
+    function makeCanvas(img) {
         console.log('Generating blob using canvas');
         // Make sure to use real dimension to draw image
         // Otherwise any resize will result in different blob and md5
@@ -107,21 +106,37 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
         c.height = h;
         // console.log(img.width, img.height);
         ctx.drawImage(img, 0, 0, w, h);
-        const blob = new Promise((resolve, reject) => {
-            c.toBlob((blob) => {
-                resolve(blob);
-            })
-        })
 
-        return blob
+        return c
+    }
+
+    function cloneNode(node) {
+        const res = node.cloneNode();
+        if (node.tagName == 'IMG') {
+            res.src = node.src;
+        } else if (node.tagName == 'CANVAS') {
+            res.width = node.width;
+            res.height = node.height;
+            const ctx = res.getContext('2d');
+            ctx.drawImage(node, 0, 0, node.width, node.height);
+        }
+
+        return res;
     }
 
     function wrapImage(img, ocr) {
         // This is necessary since some sites can replace an already wrapped image
         // using JS (at somepoint this should be detected automatically)
         console.log('wrapping image');
-        const nw = img.naturalWidth;
-        const nh = img.naturalHeight;
+        var nw;
+        var nh;
+        if (img.tagName == 'IMG') {
+            nw = img.naturalWidth;
+            nh = img.naturalHeight;
+        } else if (img.tagName == 'CANVAS') {
+            nw = img.width;
+            nh = img.height;
+        }
 
         var newImg;
         var wrapper;
@@ -130,15 +145,15 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
             newImg = img;
             wrapper = img.parentNode;
         } else {
-            newImg = img.cloneNode();
+            newImg = cloneNode(img);
             wrapper = document.createElement('div');
             wrapper.appendChild(newImg);
             img.replaceWith(wrapper);
         }
-        if (newImg.classList.length > 0) {
-            console.log('copying class', newImg.classList);
-            wrapper.classList.add(newImg.classList);
-        }
+        console.log('copying class', newImg.classList);
+        newImg.classList.forEach((cls) => {
+            wrapper.classList.add(cls);
+        })
 
         newImg.classList.add(wrappedClass);
         wrapper.classList.add(wrapperClass);
@@ -159,18 +174,41 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
         })
     }
 
+    function blobFromCanvas(canvas) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            })
+        })
+    }
+
     async function processImage(img) {
         console.log('PROCESSING', img);
         
         // Get a blob from the image
-        var blob = await fetchBlobFromUrl(img.src);
-        var [fmt, base64data] = await blobToBase64(blob);
-        // If image is not a supported type, convert to canvas and get png blob
-        if ( ! ['jpeg', 'png', 'gif'].includes(fmt) ) {
-            console.log('not supported format', fmt, 'falling back to canvas');
-            blob = await makeCanvasBlob(img);
-            base64data = await blobToBase64(blob)[1];
+        var blob;
+        var base64data;
+        if (img.tagName == 'IMG')
+        {
+            var blob = await fetchBlobFromUrl(img.src);
+            var [fmt, data] = await blobToBase64(blob);
+            // If image is not a supported type, convert to canvas and get png blob
+            if ( ! ['jpeg', 'png', 'gif'].includes(fmt) ) {
+                console.log('not supported format', fmt, 'falling back to canvas');
+                const canvas = makeCanvas(img);
+                blob = await blobFromCanvas(canvas);
+                data = (await blobToBase64(blob))[1];
+            }
+            base64data = data;
+        } else if (img.tagName == 'CANVAS') {
+            blob = await blobFromCanvas(img);
+            console.log('CANVAS: blob', blob);
+            base64data = (await blobToBase64(blob))[1];
+        } else {
+            console.log('unknown tag', img.tagName);
+            return;
         }
+
         const md5Hash = md5(base64data);
 
         // Change image CSS while loading OCR and if error
@@ -195,7 +233,8 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
     }
 
     function handleNodeInserted(e) {
-        if (e.target.tagName === 'IMG') {
+        const tag = e.target.tagName;
+        if (['IMG', 'CANVAS'].includes(tag)) {
             console.log('image inserted');
             processImage(e.target);
         }
@@ -209,6 +248,9 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
         console.log('enabling OCR');
         document.querySelectorAll('img').forEach((img) => {
             processImage(img);
+        })
+        document.querySelectorAll('canvas').forEach((canvas) => {
+            processImage(canvas);
         })
         document.addEventListener('DOMNodeInserted', handleNodeInserted)
     }

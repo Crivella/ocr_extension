@@ -1,4 +1,4 @@
-.wrapper {
+.ocr-wrapper-5124677111 {
     position: relative;
     border: 2px solid #1aff00;
     justify-content: center;
@@ -9,7 +9,7 @@
     border: 2px solid #1aff00;
 } */
 
-.wrapper .image {
+.ocr-wrapper-5124677111 .image {
     display: block;
     width: 100%;
     height: auto;
@@ -19,7 +19,7 @@
     visibility: hidden;
 }
 
-img.wrapped ~ .patch-text {
+img.ocr-wrapped-5124677111 ~ .patch-text {
     position: absolute;
     visibility: visible;
     background-color: rgb(255, 255, 255, 0.8);

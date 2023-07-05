@@ -103,7 +103,23 @@ function TSLModelSelect() {
         success={success} />
 }
 
+// function ToggleOCR() {
+//     const { ocrEnabled, setOcrEnabled } = useContext(GlobalContext);
+
+//     const onClick = () => {
+//         setOcrEnabled(!ocrEnabled);
+//     }
+
+//     return (
+//         <div className="field">
+//             <label htmlFor="ocr-toggle">OCR</label>
+//             <input type="checkbox" id="ocr-toggle" name="ocr-toggle" checked={ocrEnabled} onChange={onClick} />
+//         </div>
+//     )
+// }
+
 function Popup() {
+    // const [ocrEnabled, setOcrEnabled] = useState(false);
     const [endpoint, setEndpoint] = useState(defaultEndpoint);
     const [ocrModel, setOcrModel] = useState('');
     const [tslModel, setTslModel] = useState('');
@@ -138,6 +154,17 @@ function Popup() {
             })
     }, [endpoint])
 
+    // useEffect(() => {
+    //     browser.tabs.query({active: true, currentWindow: true})
+    //         .then((tabs) => {
+    //             // console.log(tabs);
+    //             const tab = tabs[0];
+    //             browser.tabs.sendMessage(tab.id, {
+    //                 type: ocrEnabled ? 'enable-ocr' : 'disable-ocr',
+    //             })
+    //         })
+    // }, [ocrEnabled])
+
     useEffect(() => {
         setSuccess(null);
     }, [endpoint, ocrModel, tslModel])
@@ -149,6 +176,8 @@ function Popup() {
         setOcrModel: setOcrModel,
         tslModel: tslModel,
         setTslModel: setTslModel,
+        // ocrEnabled: ocrEnabled,
+        // setOcrEnabled: setOcrEnabled,
         ocrModels: ocrModels,
         tslModels: tslModels,
         success: success,
@@ -177,6 +206,7 @@ function Popup() {
             <OCRModelSelect />
             <TSLModelSelect />
             <button onClick={onSubmit}>Submit</button>
+            {/* <ToggleOCR /> */}
         </GlobalContext.Provider>
     );
 }

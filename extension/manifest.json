@@ -20,11 +20,15 @@
     "scripts": ["dist/background.js"]
   },
 
+  "page_action": {
+    "default_icon": "icons/off.svg",
+    "browser_style": true
+  },
+
   "permissions": [
     "<all_urls>",
     "activeTab",
-    "tabs",
-    "menus"
+    "tabs"
   ]
 
 }

@@ -19,7 +19,7 @@
     visibility: hidden;
 }
 
-img.ocr-wrapped-5124677111 ~ .patch-text {
+.ocr-wrapped-5124677111 ~ .patch-text {
     position: absolute;
     visibility: visible;
     background-color: rgb(255, 255, 255, 0.8);
@@ -38,6 +38,8 @@ img.ocr-wrapped-5124677111 ~ .patch-text {
     /* font-weight: bold; */
     text-align: center;
     vertical-align: middle;
+    word-wrap: break-word;
+    white-space: break-spaces;
 }
 
 .patch-text:hover {

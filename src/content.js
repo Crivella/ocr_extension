@@ -236,8 +236,27 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
         const tag = e.target.tagName;
         if (['IMG', 'CANVAS'].includes(tag)) {
             console.log('image inserted');
+            // This should actually check for images that are still there
+            // or maybe use a listenere for node removed?
+            onImageReload();
             processImage(e.target);
         }
+    }
+
+    function unwrapImage(img) {
+        img.classList.remove(wrappedClass);
+        img.classList.remove('ocr-loading');
+        img.classList.remove('ocr-error');
+        console.log('unwrapping image');
+        const wrapper = img.parentNode;
+        wrapper.querySelectorAll('.patch-text').forEach((text) => {
+            text.remove();
+        })
+        wrapper.classList.remove(wrapperClass);
+        wrapper.firstChild.classList.remove(wrappedClass);
+        wrapper.firstChild.classList.remove('ocr-loading');
+        wrapper.firstChild.classList.remove('ocr-error');
+        wrapper.replaceWith(wrapper.firstChild);
     }
 
     function enableOCR() {
@@ -262,16 +281,8 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
         OCR = false;
         console.log('disabling OCR');
         document.removeEventListener('DOMNodeInserted', handleNodeInserted);
-        document.querySelectorAll(`.${wrapperClass}`).forEach((wrapper) => {
-            wrapper.querySelectorAll('.patch-text').forEach((text) => {
-                text.remove();
-            })
-            wrapper.classList.remove(wrapperClass);
-            wrapper.firstChild.classList.remove(wrappedClass);
-            wrapper.firstChild.classList.remove('ocr-loading');
-            wrapper.firstChild.classList.remove('ocr-error');
-            wrapper.replaceWith(wrapper.firstChild);
-        })
+        document.querySelectorAll(`.${wrapperClass} > .${wrappedClass}`)
+            .forEach((img) => unwrapImage(img));
     }
 
     browser.runtime.onMessage.addListener(async (msg) => {

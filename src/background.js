@@ -2,6 +2,7 @@ const TITLE_APPLY = "Enable OCR";
 const TITLE_REMOVE = "Disable OCR";
 const APPLICABLE_PROTOCOLS = ["http:", "https:"];
 
+var ENDPOINT = 'http://127.0.0.1:4000';
 const enabledIds = [];
 
 /*
@@ -25,6 +26,10 @@ function initializePageAction(tab) {
     }
     browser.tabs.executeScript(tab.id, {file: "dist/content.js"})
     browser.tabs.insertCSS(tab.id, {file: "content.css"})
+    browser.tabs.sendMessage(tab.id, {
+        type: 'set-endpoint',
+        endpoint: ENDPOINT,
+    })
     browser.pageAction.setIcon({tabId: tab.id, path: "icons/off.png"});
     browser.pageAction.setTitle({tabId: tab.id, title: TITLE_APPLY});
     browser.pageAction.show(tab.id);
@@ -35,20 +40,20 @@ When first loaded, initialize the page action for all tabs.
 */
 let gettingAllTabs = browser.tabs.query({});
 gettingAllTabs.then((tabs) => {
-  for (let tab of tabs) {
-    initializePageAction(tab);
-  }
+    for (let tab of tabs) {
+        initializePageAction(tab);
+    }
 });
 
 /*
 Each time a tab is updated, reset the page action for that tab.
 */
 browser.tabs.onUpdated.addListener((id, changeInfo, tab) => {
-  initializePageAction(tab);
-  console.log('onUpdated', id, changeInfo, tab, enabledIds)
-  if (enabledIds.includes(id)) {
-    enableOCR(tab)
-  }
+    initializePageAction(tab);
+    console.log('onUpdated', id, changeInfo, tab, enabledIds)
+    if (enabledIds.includes(id)) {
+        enableOCR(tab)
+    }
 });
 
 /*
@@ -79,11 +84,11 @@ function disableOCR(tab) {
 
 function toggleOCR(tab) {
     function gotTitle(title) {
-      if (title === TITLE_APPLY) {
-        enableOCR(tab);
-      } else {
-        disableOCR(tab);
-      }
+        if (title === TITLE_APPLY) {
+            enableOCR(tab);
+        } else {
+            disableOCR(tab);
+        }
     }
   
     let gettingTitle = browser.pageAction.getTitle({tabId: tab.id});
@@ -91,3 +96,29 @@ function toggleOCR(tab) {
   }
 
 browser.pageAction.onClicked.addListener(toggleOCR);
+
+browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    switch (msg.type) {
+        case 'set-endpoint': {
+            console.log('setting endpoint', msg.endpoint);
+            ENDPOINT = msg.endpoint;
+            // Broadcast the endpoint to all tabs
+            browser.tabs.query({}).then((tabs) => {
+                tabs.forEach((tab) => {
+                    browser.tabs.sendMessage(tab.id, {
+                        type: 'set-endpoint',
+                        endpoint: ENDPOINT,
+                    })
+                })
+            })
+            break;
+        }
+        case 'get-endpoint': {
+            console.log('getting endpoint', ENDPOINT);
+            sendResponse({endpoint: ENDPOINT});
+            break;
+        }
+        default:
+            break;
+    }
+})

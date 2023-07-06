@@ -1,4 +1,4 @@
-import { randomId } from './randomId.js';
+import { randomId } from './defaults.js';
 
 export const wrapperClass = `ocr-wrapper-${randomId}`;
 export const wrappedClass = `ocr-wrapped-${randomId}`;

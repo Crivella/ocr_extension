@@ -4,8 +4,6 @@ import ReactDOM from "react-dom";
 
 const GlobalContext = createContext();
 
-const defaultEndpoint = 'http://127.0.0.1:4000';
-
 function EndpointField() {
     const { endpoint, setEndpoint, successEndpoint: success } = useContext(GlobalContext);
 
@@ -14,10 +12,13 @@ function EndpointField() {
 
     const onSubmit = (e) => {
         e.preventDefault();
-        console.log(endpoint);
+        console.log(endpointInput);
         setEndpoint(endpointInput);
     }
 
+    useEffect(() => {
+        setEndpointInput(endpoint);
+    }, [endpoint])
 
     useEffect(() => {
         if (success === null) {
@@ -103,24 +104,8 @@ function TSLModelSelect() {
         success={success} />
 }
 
-// function ToggleOCR() {
-//     const { ocrEnabled, setOcrEnabled } = useContext(GlobalContext);
-
-//     const onClick = () => {
-//         setOcrEnabled(!ocrEnabled);
-//     }
-
-//     return (
-//         <div className="field">
-//             <label htmlFor="ocr-toggle">OCR</label>
-//             <input type="checkbox" id="ocr-toggle" name="ocr-toggle" checked={ocrEnabled} onChange={onClick} />
-//         </div>
-//     )
-// }
-
 function Popup() {
-    // const [ocrEnabled, setOcrEnabled] = useState(false);
-    const [endpoint, setEndpoint] = useState(defaultEndpoint);
+    const [endpoint, setEndpoint] = useState('');
     const [ocrModel, setOcrModel] = useState('');
     const [tslModel, setTslModel] = useState('');
     const [ocrModels, setOcrModels] = useState([]);
@@ -129,41 +114,48 @@ function Popup() {
     const [successEndpoint, setSuccessEndpoint] = useState(null);
 
     useEffect(() => {
-        browser.tabs.query({active: true, currentWindow: true})
-            .then((tabs) => {
-                console.log(tabs);
-                const tab = tabs[0];
-                browser.tabs.sendMessage(tab.id, {
-                    type: 'set-endpoint',
-                    endpoint: endpoint,
+        console.log('useEffect - init');
+        browser.runtime.sendMessage({
+            type: 'get-endpoint',
+        }).then((response) => {
+            setEndpoint(response.endpoint);
+        })
+    }, [])
+
+    useEffect(() => {
+        console.log('useEffect - endpoint: ' + `'${endpoint}'`);
+        if ( ! (endpoint === '') ) {
+            console.log(`GET ${endpoint}/`);
+            axios.get(`${endpoint}/`)
+                .then(res => {
+                    console.log(res.data);
+                    setSuccessEndpoint(true);
+                    setOcrModels(res.data.OCRModels);
+                    setTslModels(res.data.TSLModels);
+                    setOcrModel(res.data.ocr_selected || '');
+                    setTslModel(res.data.tsl_selected || '');
+
+                    // browser.tabs.query({active: true, currentWindow: true})
+                    // .then((tabs) => {
+                    //     console.log(tabs);
+                    //     const tab = tabs[0];
+                    //     browser.tabs.sendMessage(tab.id, {
+                    //         type: 'set-endpoint',
+                    //         endpoint: endpoint,
+                    //     })
+                    // })
+                    browser.runtime.sendMessage({
+                        type: 'set-endpoint',
+                        endpoint: endpoint,
+                    })
+        
                 })
-            })
-
-        axios.get(`${endpoint}/`)
-            .then(res => {
-                console.log(res.data);
-                setSuccessEndpoint(true);
-                setOcrModels(res.data.OCRModels);
-                setTslModels(res.data.TSLModels);
-                setOcrModel(res.data.ocr_selected || '');
-                setTslModel(res.data.tsl_selected || '');
-            })
-            .catch(err => {
-                console.log(err);
-                setSuccessEndpoint(false);
-            })
+                .catch(err => {
+                    console.log(err);
+                    setSuccessEndpoint(false);
+                })
+        }
     }, [endpoint])
-
-    // useEffect(() => {
-    //     browser.tabs.query({active: true, currentWindow: true})
-    //         .then((tabs) => {
-    //             // console.log(tabs);
-    //             const tab = tabs[0];
-    //             browser.tabs.sendMessage(tab.id, {
-    //                 type: ocrEnabled ? 'enable-ocr' : 'disable-ocr',
-    //             })
-    //         })
-    // }, [ocrEnabled])
 
     useEffect(() => {
         setSuccess(null);

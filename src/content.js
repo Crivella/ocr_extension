@@ -193,17 +193,18 @@ Function used to avoid multiple injection (cleaner than using an if?)
     Listen for messages from the background script.
     */
     browser.runtime.onMessage.addListener(async (msg) => {
-        if (msg.type === 'set-endpoint') {
-            console.log('setting endpoint', msg.endpoint);
-            setEndpoint(msg.endpoint);
-        }
-        if (msg.type === 'enable-ocr') {
-            console.log('OCR enabled');
-            enableOCR();
-        }
-        if (msg.type === 'disable-ocr') {
-            console.log('OCR disabled');
-            disableOCR();
+        switch (msg.type) {
+            case 'enable-ocr':
+                enableOCR();
+                break;
+            case 'disable-ocr':
+                disableOCR();
+                break;
+            case 'set-endpoint':
+                setEndpoint(msg.endpoint);
+                break;
+            default:
+                console.log('unknown message', msg);
         }
     })
 })();

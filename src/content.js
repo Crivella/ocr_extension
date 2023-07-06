@@ -140,6 +140,28 @@ Function used to avoid multiple injection (cleaner than using an if?)
         }
     }
 
+    function handleNodeRemoved(e) {
+        const tag = e.target.tagName;
+        if (['IMG', 'CANVAS'].includes(tag)) {
+            console.log('image removed');
+            const topop = [];
+            images.forEach((ptr, idx) => {
+                if (ptr.img === e.target) {
+                    topop.push(idx);
+                    ptr.boxes.forEach((box) => {
+                        box.remove();
+                    })
+                }
+            })
+
+            topop.sort((a, b) => b - a);
+            topop.forEach((ptr) => {
+                const i = images.indexOf(ptr);
+                images.splice(i, 1);
+            })
+        }
+    }
+
     /*
     Enable the addon on the current tab.
      - process all img/canvas already on the page
@@ -159,6 +181,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
             processImage(canvas);
         })
         document.addEventListener('DOMNodeInserted', handleNodeInserted)
+        document.addEventListener('DOMNodeRemoved', handleNodeRemoved)
     }
 
     /*
@@ -174,6 +197,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         OCR = false;
         console.log('disabling OCR');
         document.removeEventListener('DOMNodeInserted', handleNodeInserted);
+        document.removeEventListener('DOMNodeRemoved', handleNodeRemoved);
 
         console.log(images);
         var i = images.length;

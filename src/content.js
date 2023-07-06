@@ -209,6 +209,12 @@ const wrappedClass = `ocr-wrapped-${randomId}`;
             return;
         }
 
+        // This is the entire image size (should be atleas 10k pixels)
+        if ( img.width*img.height < 100*100 ) {
+            console.log('image too small', nw, nh);
+            return;
+        }
+
         const md5Hash = md5(base64data);
 
         // Change image CSS while loading OCR and if error

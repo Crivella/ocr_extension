@@ -8,7 +8,12 @@ import { unwrapImage, wrapImage } from './utils/wrapper';
 
 var OCR = false;
 
+/*
+This is the main content script that is injected into the page
+Function used to avoid multiple injection (cleaner than using an if?)
+*/
 (function() {
+    // Check if the content script is already injected
     if (window.hasRun5124677111) {
         return;
     }
@@ -16,6 +21,13 @@ var OCR = false;
 
     const images = [];
 
+    /*
+    Apply the OCR result to the image
+     - Wrap the image in a div
+     - Draw the text boxes on top of the image
+     - Add event handlers
+        - Copy text to clipboard on click
+    */
     function applyOcr(img, wrapper, ocr) {
         console.log('applying ocr');
 
@@ -43,6 +55,16 @@ var OCR = false;
         })
     }
 
+    /*
+    Pipeline for processing an image:
+     - Get a blob from the image
+     - Get the blob in base64 format
+     - Get the md5 hash of the base64 data
+     - Get the OCR result from the API
+     - Apply the OCR result to the image
+     - Add event handlers
+        - 'load': remove existing result and re-process image on reload
+    */
     async function processImage(img) {
         console.log('PROCESSING', img);
         // This is the entire image size (should be atleas 10k pixels)
@@ -77,27 +99,53 @@ var OCR = false;
         const [newImg, wrapper] = wrapImage(img);
 
         applyOcr(newImg, wrapper, ocr);
+        newImg.addEventListener('load', onImageReload);
     }
 
-    function onImageReload() {
+    /*
+    Used to handle 'load' event on images that are already loaded.
+    EG: some sites can replace an image with a new one using JS, by modifing the src attribute.
+    */
+    function onImageReload(e) {
+        const img = e.target;
         console.log('image reloaded');
-        textboxes.forEach((textbox) => {
-            textbox.remove();
+        const topop = [];
+        images.forEach((ptr, idx) => {
+            if (ptr.img === img) {
+                topop.push(idx);
+                ptr.boxes.forEach((box) => {
+                    box.remove();
+                })
+            }
         })
-        textboxes.length = 0;
+
+        topop.sort((a, b) => b - a);
+        topop.forEach((ptr) => {
+            const i = images.indexOf(ptr);
+            images.splice(i, 1);
+        })
+
+        processImage(img);
     }
     
+    /*
+    Used to handle 'DOMNodeInserted' event on the document.
+    EG: some sites can add images to the page using JS.
+    */
     function handleNodeInserted(e) {
         const tag = e.target.tagName;
         if (['IMG', 'CANVAS'].includes(tag)) {
             console.log('image inserted');
-            // This should actually check for images that are still there
-            // or maybe use a listenere for node removed?
-            // onImageReload();
             processImage(e.target);
         }
     }
 
+    /*
+    Enable the addon on the current tab.
+     - process all img/canvas already on the page
+     - add event listeners
+        - 'DOMNodeInserted': process new images added to the page
+    */
     function enableOCR() {
         if (OCR === true) {
             return;
@@ -113,6 +161,12 @@ var OCR = false;
         document.addEventListener('DOMNodeInserted', handleNodeInserted)
     }
 
+    /*
+    Disable the addon on the current tab.
+     - remove all event listeners
+     - remove all textboxes
+     - unwrap all images
+    */
     function disableOCR() {
         if (OCR === false) {
             return;
@@ -129,11 +183,15 @@ var OCR = false;
             ptr.boxes.forEach((textbox) => {
                 textbox.remove();
             })
+            ptr.img.removeEventListener('load', onImageReload);
             unwrapImage(ptr.img);
             images.splice(i, 1);
         }
     }
 
+    /*
+    Listen for messages from the background script.
+    */
     browser.runtime.onMessage.addListener(async (msg) => {
         if (msg.type === 'set-endpoint') {
             console.log('setting endpoint', msg.endpoint);

@@ -13,7 +13,11 @@ export function drawBox({box, tsl, max_width, max_height}) {
     text.style.top = `${b/max_height*100}%`;
     text.style.left = `${l/max_width*100}%`;
 
-    const size = Math.sqrt(w*h/tsl.length*0.3)/7;
+    const box_fill_factor = 0.8; // Box should not be 100% charaters but also empty space
+    const char_area = w * h / tsl.length * box_fill_factor;
+    // Font size in px renormalized to viewport width
+    // This approach is ok as long as image reseizes with the window
+    const size = Math.sqrt( char_area ) / (window.innerWidth / 100);
 
     text.style.fontSize = `${size}vw`;
     text.style.lineHeight = `${size}vw`;

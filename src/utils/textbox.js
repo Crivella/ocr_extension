@@ -19,8 +19,8 @@ export function drawBox({box, tsl, max_width, max_height}) {
     // This approach is ok as long as image reseizes with the window
     const size = Math.sqrt( char_area ) / (window.innerWidth / 100);
 
-    text.style.fontSize = `${size}vw`;
-    text.style.lineHeight = `${size}vw`;
+    text.style.fontSize = `calc(${size}vw * var(--ocr-text-font-scale, 1))`;
+    text.style.lineHeight = `calc(${size}vw * var(--ocr-text-font-scale, 1))`;
 
     return text;
 }

@@ -50,6 +50,55 @@ function EndpointField() {
     )
 }
 
+function FontScaleField() {
+    const { fontScale, setFontScale } = useContext(GlobalContext);
+
+    return (
+        <div className="field">
+            <label htmlFor="font-scale">Font Scale</label>
+            <input
+                type="number" id="font-scale" name="font-scale"
+                value={fontScale}
+                min="0.1" max="3" step="0.1"
+                onChange={(e) => setFontScale(e.target.value)}
+                onScroll={(e) => console.log(e)}
+            />
+        </div>
+    )
+}
+
+function RGBField() {
+    const { RGB, setRGB } = useContext(GlobalContext);
+
+    return (
+        <div className="field">
+            <label htmlFor="R">R</label>
+            <input
+                type="number" id="R" name="R"
+                value={RGB[0]}
+                min="0" max="255" step="1"
+                onChange={(e) => setRGB([e.target.value, RGB[1], RGB[2]])}
+            />
+            <label htmlFor="G">G</label>
+            <input
+                type="number" id="G" name="G"
+                value={RGB[1]}
+                min="0" max="255" step="1"
+                onChange={(e) => setRGB([RGB[0], e.target.value, RGB[2]])}
+            />
+            <label htmlFor="B">B</label>
+            <input
+                type="number" id="B" name="B"
+                value={RGB[2]}
+                min="0" max="255" step="1"
+                onChange={(e) => setRGB([RGB[0], RGB[1], e.target.value])}
+            />
+        </div>
+    )
+}
+
+
+
 function SelectField({label, name, options, value, setValue, success}) {
     const [myClass, setClass] = useState(''); // ['success', 'error', '']
 
@@ -105,6 +154,8 @@ function TSLModelSelect() {
 }
 
 function Popup() {
+    const [fontScale, setFontScale] = useState(1.0);
+    const [RGB, setRGB] = useState([0, 0, 0]);
     const [endpoint, setEndpoint] = useState('');
     const [ocrModel, setOcrModel] = useState('');
     const [tslModel, setTslModel] = useState('');
@@ -120,6 +171,19 @@ function Popup() {
         }).then((response) => {
             setEndpoint(response.endpoint);
         })
+
+        browser.runtime.sendMessage({
+            type: 'get-font-scale',
+        }).then((response) => {
+            setFontScale(response.fontScale);
+        })
+
+        browser.runtime.sendMessage({
+            type: 'get-color',
+        }).then((response) => {
+            setRGB(response.color);
+        })
+
     }, [])
 
     useEffect(() => {
@@ -135,15 +199,6 @@ function Popup() {
                     setOcrModel(res.data.ocr_selected || '');
                     setTslModel(res.data.tsl_selected || '');
 
-                    // browser.tabs.query({active: true, currentWindow: true})
-                    // .then((tabs) => {
-                    //     console.log(tabs);
-                    //     const tab = tabs[0];
-                    //     browser.tabs.sendMessage(tab.id, {
-                    //         type: 'set-endpoint',
-                    //         endpoint: endpoint,
-                    //     })
-                    // })
                     browser.runtime.sendMessage({
                         type: 'set-endpoint',
                         endpoint: endpoint,
@@ -158,6 +213,20 @@ function Popup() {
     }, [endpoint])
 
     useEffect(() => {
+        browser.runtime.sendMessage({
+            type: 'set-font-scale',
+            fontScale: fontScale,
+        })
+    }, [fontScale])
+
+    useEffect(() => {
+        browser.runtime.sendMessage({
+            type: 'set-color',
+            color: RGB,
+        })
+    }, [RGB])
+
+    useEffect(() => {
         setSuccess(null);
     }, [endpoint, ocrModel, tslModel])
 
@@ -168,6 +237,10 @@ function Popup() {
         setOcrModel: setOcrModel,
         tslModel: tslModel,
         setTslModel: setTslModel,
+        fontScale: fontScale,
+        setFontScale: setFontScale,
+        RGB: RGB,
+        setRGB: setRGB,
         // ocrEnabled: ocrEnabled,
         // setOcrEnabled: setOcrEnabled,
         ocrModels: ocrModels,
@@ -195,10 +268,19 @@ function Popup() {
     return (
         <GlobalContext.Provider value={newProps}>
             <EndpointField />
-            <OCRModelSelect />
-            <TSLModelSelect />
-            <button onClick={onSubmit}>Submit</button>
+            <div style={{
+                border: "1px solid red", 
+                // padding: "5px", 
+                marginTop: "5px",
+                marginBottom: "5px",
+                }}>
+                <OCRModelSelect />
+                <TSLModelSelect />
+                <button onClick={onSubmit}>Submit</button>
+            </div>
             {/* <ToggleOCR /> */}
+            <FontScaleField />
+            <RGBField />
         </GlobalContext.Provider>
     );
 }

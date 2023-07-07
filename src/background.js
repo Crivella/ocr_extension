@@ -2,8 +2,14 @@ const TITLE_APPLY = "Enable OCR";
 const TITLE_REMOVE = "Disable OCR";
 const APPLICABLE_PROTOCOLS = ["http:", "https:"];
 
-var ENDPOINT = 'http://127.0.0.1:4000';
 const enabledIds = [];
+
+/* Hub controlled variables */
+var ENDPOINT = 'http://127.0.0.1:4000';
+var FONT_SCALE = 1.0;
+var R = 170;
+var G = 68;
+var B = 68;
 
 /*
 Returns true only if the URL's protocol is in APPLICABLE_PROTOCOLS.
@@ -97,19 +103,23 @@ function toggleOCR(tab) {
 
 browser.pageAction.onClicked.addListener(toggleOCR);
 
+function BroadcastMessage(msg) {
+    browser.tabs.query({}).then((tabs) => {
+        tabs.forEach((tab) => {
+            browser.tabs.sendMessage(tab.id, msg)
+        })
+    })
+}
+
 browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg.type) {
         case 'set-endpoint': {
             console.log('setting endpoint', msg.endpoint);
             ENDPOINT = msg.endpoint;
             // Broadcast the endpoint to all tabs
-            browser.tabs.query({}).then((tabs) => {
-                tabs.forEach((tab) => {
-                    browser.tabs.sendMessage(tab.id, {
-                        type: 'set-endpoint',
-                        endpoint: ENDPOINT,
-                    })
-                })
+            BroadcastMessage({
+                type: 'set-endpoint',
+                endpoint: ENDPOINT,
             })
             break;
         }
@@ -118,6 +128,37 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             sendResponse({endpoint: ENDPOINT});
             break;
         }
+        case 'set-font-scale': {
+            console.log('setting font scale', msg.fontScale);
+            FONT_SCALE = msg.fontScale;
+            // Broadcast the font scale to all tabs
+            BroadcastMessage({
+                type: 'set-font-scale',
+                fontScale: FONT_SCALE,
+            })
+            break;
+        }
+        case 'get-font-scale': {
+            console.log('getting font scale', FONT_SCALE);
+            sendResponse({fontScale: FONT_SCALE});
+            break;
+        }
+        case 'set-color': {
+            console.log('setting color', msg.color);
+            [R, G, B] = msg.color;
+            // Broadcast the color to all tabs
+            BroadcastMessage({
+                type: 'set-color',
+                color: [R, G, B],
+            })
+            break;
+        }
+        case 'get-color': {
+            console.log('getting color', [R, G, B]);
+            sendResponse({color: [R, G, B]});
+            break;
+        }
+
         default:
             break;
     }

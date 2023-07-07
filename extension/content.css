@@ -1,6 +1,22 @@
-.ocr-wrapper-5124677111 {
+:root {
+    --ocr-wrapper-border-color: #1aff00;
+    --ocr-text-color: #a44;
+    --ocr-text-bg-color: rgb(255, 255, 255, 0.8);
+    --ocr-text-border-color: #636363;
+    --ocr-text-font-family: monospace;
+    --ocr-text-font-size: 15px;
+    --ocr-text-line-height: 15px;
+    --ocr-text-font-weight: normal;
+    --ocr-text-align: center;
+    --ocr-text-vertical-align: middle;
+    --ocr-text-word-wrap: break-word;
+    --ocr-text-white-space: break-spaces;
+    --ocr-text-font-scale: 1;
+}
+
+.ocr-wrapper {
     position: relative;
-    border: 2px solid #1aff00;
+    border: 2px solid var(--ocr-wrapper-border-color);
     justify-content: center;
     display: inline-block;
 }
@@ -9,7 +25,7 @@
     border: 2px solid #1aff00;
 } */
 
-.ocr-wrapper-5124677111 .image {
+.ocr-wrapper .image {
     display: block;
     width: 100%;
     height: auto;
@@ -19,12 +35,13 @@
     visibility: hidden;
 }
 
-.ocr-wrapped-5124677111 ~ .patch-text {
+.ocr-wrapped ~ .patch-text {
     position: absolute;
     visibility: visible;
-    background-color: rgb(255, 255, 255, 0.8);
-    border: 1px solid #636363;
-    color: #a44;
+    background-color: var(--ocr-text-bg-color);
+    
+    border: 1px solid var(--ocr-text-border-color);
+    color: var(--ocr-text-color);
     /* visibility: hidden; */
     /* opacity: 0.8; */
     /* transition: visibility 0s, opacity 0.5s linear; */
@@ -32,14 +49,14 @@
     justify-content: center;
     align-items: center;
     /* padding: 2px; */
-    font-family: monospace;
-    font-size: 15px;
-    line-height: 15px;
-    /* font-weight: bold; */
-    text-align: center;
-    vertical-align: middle;
-    word-wrap: break-word;
-    white-space: break-spaces;
+    font-family: var(--ocr-text-font-family);
+    font-size: calc(var(--ocr-text-font-size) * var(--ocr-text-font-scale));
+    line-height: calc(var(--ocr-text-font-size) * var(--ocr-text-font-scale));
+    font-weight: var(--ocr-text-font-weight);
+    text-align: var(--ocr-text-align);
+    vertical-align: var(--ocr-text-vertical-align);
+    word-wrap: var(--ocr-text-word-wrap);
+    white-space: var(--ocr-text-white-space);
 }
 
 .patch-text:hover {
@@ -48,7 +65,7 @@
 }
 
 .ocr-loading {
-    filter: blur(5px);
+    filter: blur(2px);
 }
 
 .ocr-error {

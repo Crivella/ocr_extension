@@ -227,6 +227,12 @@ Function used to avoid multiple injection (cleaner than using an if?)
             case 'set-endpoint':
                 setEndpoint(msg.endpoint);
                 break;
+            case 'set-font-scale':
+                document.documentElement.style.setProperty('--ocr-text-font-scale', msg.fontScale);
+                break;
+            case 'set-color':
+                document.documentElement.style.setProperty('--ocr-text-color', `rgb(${msg.color.join(',')})`);
+                break;
             default:
                 console.log('unknown message', msg);
         }

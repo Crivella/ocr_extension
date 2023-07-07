@@ -10,6 +10,8 @@ var FONT_SCALE = 1.0;
 var R = 170;
 var G = 68;
 var B = 68;
+var LANG_SRC;
+var LANG_DST;
 
 /*
 Returns true only if the URL's protocol is in APPLICABLE_PROTOCOLS.
@@ -158,6 +160,36 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             sendResponse({color: [R, G, B]});
             break;
         }
+        // case 'set-lang-src': {
+        //     console.log('setting lang src', msg.lang);
+        //     LANG_SRC = msg.lang;
+        //     // Broadcast the lang to all tabs
+        //     // BroadcastMessage({ 
+        //     //     type: 'set-lang-src',
+        //     //     lang: LANG_SRC,
+        //     // })
+        //     break;
+        // }
+        // case 'get-lang-src': {
+        //     console.log('getting lang src', LANG_SRC);
+        //     sendResponse({lang: LANG_SRC});
+        //     break;
+        // }
+        // case 'set-lang-dst': {
+        //     console.log('setting lang dst', msg.lang);
+        //     LANG_DST = msg.lang;
+        //     // Broadcast the lang to all tabs
+        //     // BroadcastMessage({
+        //     //     type: 'set-lang-dst',
+        //     //     lang: LANG_DST,
+        //     // })
+        //     break;
+        // }
+        // case 'get-lang-dst': {
+        //     console.log('getting lang dst', LANG_DST);
+        //     sendResponse({lang: LANG_DST});
+        //     break;
+        // }
 
         default:
             break;

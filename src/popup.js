@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 
 const GlobalContext = createContext();
@@ -129,8 +129,8 @@ function SelectField({label, name, options, value, setValue, success}) {
     )
 }
 
-function OCRModelSelect() {
-    const { success, ocrModels, ocrModel, setOcrModel } = useContext(GlobalContext);
+function OCRModelSelect({ success = null }) {
+    const { ocrModels, ocrModel, setOcrModel } = useContext(GlobalContext);
 
     return <SelectField 
         label="OCR Model" 
@@ -141,8 +141,8 @@ function OCRModelSelect() {
         success={success} />
 }
 
-function TSLModelSelect() {
-    const { success, tslModels, tslModel, setTslModel } = useContext(GlobalContext);
+function TSLModelSelect({ success = null }) {
+    const { tslModels, tslModel, setTslModel } = useContext(GlobalContext);
 
     return <SelectField
         label="Translation Model"
@@ -153,15 +153,120 @@ function TSLModelSelect() {
         success={success} />
 }
 
+function LanguageSrcSelect({ success = null }) {
+    const { langChoices, langSrc, setLangSrc } = useContext(GlobalContext);
+
+    return <SelectField
+        label="Source Language"
+        name="lang-src"
+        options={langChoices}
+        value={langSrc}
+        setValue={setLangSrc}
+        success={success} />
+}
+
+function LanguageDstSelect({ success = null }) {
+    const { langChoices, langDst, setLangDst } = useContext(GlobalContext);
+    
+    return <SelectField
+        label="Destination Language"
+        name="lang-dst"
+        options={langChoices}
+        value={langDst}
+        setValue={setLangDst}
+        success={success} />
+}
+
+function SubmitUnit({children, target, data}) {
+    const { endpoint } = useContext(GlobalContext);
+
+    const [success, setSuccess] = useState(null);
+
+    const onSubmit = useCallback(async (e) => {
+        console.log('submitting', data);
+        e.preventDefault();
+        try {
+            await axios.post(`${endpoint}/${target}/`, data)
+            setSuccess(true);
+            console.log('success');
+        } catch (err) {
+            console.log(err);
+            setSuccess(false);
+        }
+    }, [endpoint, target, data]);
+
+    useEffect(() => {
+        setSuccess(null);
+    }, [data])
+
+    const newProps = {
+        success: success,
+    }
+
+    return (
+        <div className="subunit">
+            {children.map((e) => {
+                return e;
+                // let newChild = {...e};
+                // if (typeof(e.type) === 'function') newObj.props = {...newProps, ...e.props};
+                // return newChild;
+                }
+            )}
+            <button onClick={onSubmit}>Submit</button>
+        </div>
+    )
+}
+
+function ModelUnit() {
+    const [data, setData] = useState({}); 
+    const { ocrModel, tslModel } = useContext(GlobalContext);
+
+    useEffect(() => {
+        setData({
+            ocr_model_id: ocrModel,
+            tsl_model_id: tslModel,
+        })
+    }, [ocrModel, tslModel])
+
+    return (
+        <SubmitUnit target="load" data={data}>
+            <OCRModelSelect />
+            <TSLModelSelect />
+        </SubmitUnit>   
+    )
+}
+
+function LangUnit() {
+    const [data, setData] = useState({});
+    const { langSrc, langDst } = useContext(GlobalContext);
+
+    useEffect(() => {
+        setData({
+            lang_src: langSrc,
+            lang_dst: langDst,
+        })
+    }, [langSrc, langDst])
+
+    return (
+        <SubmitUnit target="set_lang" data={data}>
+            <LanguageSrcSelect />
+            <LanguageDstSelect />
+        </SubmitUnit>
+    )
+}
+
+
 function Popup() {
     const [fontScale, setFontScale] = useState(1.0);
     const [RGB, setRGB] = useState([0, 0, 0]);
+    const [langSrc, setLangSrc] = useState('');
+    const [langDst, setLangDst] = useState('');
+    const [langChoices, setLangChoices] = useState([]);
     const [endpoint, setEndpoint] = useState('');
     const [ocrModel, setOcrModel] = useState('');
     const [tslModel, setTslModel] = useState('');
     const [ocrModels, setOcrModels] = useState([]);
     const [tslModels, setTslModels] = useState([]);
-    const [success, setSuccess] = useState(null);
     const [successEndpoint, setSuccessEndpoint] = useState(null);
 
     useEffect(() => {
@@ -194,10 +299,13 @@ function Popup() {
                 .then(res => {
                     console.log(res.data);
                     setSuccessEndpoint(true);
-                    setOcrModels(res.data.OCRModels);
-                    setTslModels(res.data.TSLModels);
+                    setOcrModels(res.data.OCRModels || []);
+                    setTslModels(res.data.TSLModels || []);
+                    setLangChoices(res.data.Languages || []);
                     setOcrModel(res.data.ocr_selected || '');
                     setTslModel(res.data.tsl_selected || '');
+                    setLangSrc(res.data.lang_src || '');
+                    setLangDst(res.data.lang_dst || '');
 
                     browser.runtime.sendMessage({
                         type: 'set-endpoint',
@@ -226,9 +334,19 @@ function Popup() {
         })
     }, [RGB])
 
-    useEffect(() => {
-        setSuccess(null);
-    }, [endpoint, ocrModel, tslModel])
+    // useEffect(() => {
+    //     browser.runtime.sendMessage({
+    //         type: 'set-lang-src',
+    //         lang: langSrc,
+    //     })
+    // }, [langSrc])
+
+    // useEffect(() => {
+    //     browser.runtime.sendMessage({
+    //         type: 'set-lang-dst',
+    //         lang: langDst,
+    //     })
+    // }, [langDst])
 
     const newProps = {
         endpoint: endpoint,
@@ -241,43 +359,23 @@ function Popup() {
         setFontScale: setFontScale,
         RGB: RGB,
         setRGB: setRGB,
+        langSrc: langSrc,
+        setLangSrc: setLangSrc,
+        langDst: langDst,
+        setLangDst: setLangDst,
         // ocrEnabled: ocrEnabled,
         // setOcrEnabled: setOcrEnabled,
         ocrModels: ocrModels,
         tslModels: tslModels,
-        success: success,
+        langChoices: langChoices,
         successEndpoint: successEndpoint,
-    }
-
-
-    const onSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.post(`${endpoint}/load/`, {
-                ocr_model_id: ocrModel,
-                tsl_model_id: tslModel,
-            })
-            setSuccess(true);
-            console.log('success');
-        } catch (err) {
-            console.log(err);
-            setSuccess(false);
-        }
     }
 
     return (
         <GlobalContext.Provider value={newProps}>
             <EndpointField />
-            <div style={{
-                border: "1px solid red", 
-                // padding: "5px", 
-                marginTop: "5px",
-                marginBottom: "5px",
-                }}>
-                <OCRModelSelect />
-                <TSLModelSelect />
-                <button onClick={onSubmit}>Submit</button>
-            </div>
+            <LangUnit />
+            <ModelUnit />
             {/* <ToggleOCR /> */}
             <FontScaleField />
             <RGBField />

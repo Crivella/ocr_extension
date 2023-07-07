@@ -2,7 +2,7 @@
     display: flex;
     /* flex-direction: column; */
     justify-content: space-between;
-    margin-bottom: 1rem;
+    margin-bottom: 4px;
 }
 
 .success {
@@ -11,4 +11,10 @@
 
 .error {
     background-color: rgb(138, 95, 95);
+}
+
+.subunit {
+    border: 1px solid red;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }

@@ -1,4 +1,5 @@
 import md5 from 'md5';
+// import './content.css';
 
 import { getOcr, setEndpoint } from './utils/API';
 import { base64FromAny } from './utils/blob';

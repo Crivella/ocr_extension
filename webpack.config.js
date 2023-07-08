@@ -20,17 +20,33 @@ module.exports = {
     filename: '[name].js',
   },
   module: {
-    rules: [{
-      exclude: ['/node_modules/'],
-      test: /\.js$/,
-      use: [
-        // This transpiles all code (except for third party modules) using Babel.
-        {
-          // Babel options are in .babelrc
-          loader: 'babel-loader',
-        },
-      ]
-    }]
+    rules: [
+      {
+        exclude: ['/node_modules/'],
+        test: /\.js$/,
+        use: [
+          // This transpiles all code (except for third party modules) using Babel.
+          {
+            // Babel options are in .babelrc
+            loader: 'babel-loader',
+          },
+        ]
+      },
+      {
+        exclude: ['/node_modules/'],
+        test: /\.css$/,
+        use: [
+          'style-loader', 
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true,
+              importLoaders: 1,
+            }
+          }
+        ]
+      }
+    ]
   },
   resolve: {
     // This allows you to import modules just like you would in a NodeJS app.
@@ -47,7 +63,6 @@ module.exports = {
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
   ],
-  // This will expose source map files so that errors will point to your
-  // original source files instead of the transpiled files.
-  devtool: 'sourcemap',
+  mode: 'development',
+  devtool: 'source-map',
 };

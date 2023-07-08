@@ -1,7 +1,12 @@
 // import { randomId } from './defaults.js';
+// import { randomId } from './defaults.js';
+// import styles from './wrapper.css';
+// import './wrapper.css';
 
-export const wrapperClass = `ocr-wrapper`;
-export const wrappedClass = `ocr-wrapped`;
+// export const wrapperClass = styles["ocr-wrapper"];
+// export const wrappedClass = styles["ocr-wrapped"];
+export const wrapperClass = "ocr-wrapper";
+export const wrappedClass = "ocr-wrapped";
 
 function cloneNode(node) {
     const res = node.cloneNode();

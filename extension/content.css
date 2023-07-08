@@ -25,7 +25,7 @@
     border: 2px solid #1aff00;
 } */
 
-.ocr-wrapper .image {
+.ocr-wrapped {
     display: block;
     width: 100%;
     height: auto;

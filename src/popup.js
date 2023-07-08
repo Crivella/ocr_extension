@@ -206,10 +206,10 @@ function SubmitUnit({children, target, data}) {
     return (
         <div className="subunit">
             {children.map((e) => {
-                return e;
-                // let newChild = {...e};
-                // if (typeof(e.type) === 'function') newObj.props = {...newProps, ...e.props};
-                // return newChild;
+                // return e;
+                let newChild = {...e};
+                if (typeof(e.type) === 'function') newChild.props = {...newProps, ...e.props};
+                return newChild;
                 }
             )}
             <button onClick={onSubmit}>Submit</button>

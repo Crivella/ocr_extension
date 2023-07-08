@@ -1,3 +1,9 @@
+// import './textbox.css';
+// import styles from './textbox.css';
+// const textboxClass = styles["patch-text"];
+const textboxClass = "patch-text";
+
+
 export function drawBox({box, tsl, max_width, max_height}) {
     const [l,b,r,t] = box;
     const w = r-l;
@@ -6,8 +12,8 @@ export function drawBox({box, tsl, max_width, max_height}) {
     console.log('BOX',l,b,r,t,w,h);
 
     const text = document.createElement('div');
-    text.className = 'patch-text'
-    text.innerHTML = `${tsl}`
+    text.className = textboxClass;
+    text.innerHTML = `${tsl}`;
     text.style.width = `${w/max_width*100}%`;
     text.style.height = `${h/max_height*100}%`;
     text.style.top = `${b/max_height*100}%`;

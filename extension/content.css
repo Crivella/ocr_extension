@@ -104,3 +104,32 @@
     margin: 5px 0;
     flex-grow: 1;
 }
+
+.ocr-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgb(0,0,0,0.9);
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    padding: 5px;
+}
+
+.ocr-dialog-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background-color: #622;
+    color: #000;
+    cursor: pointer;
+}
+
+.ocr-dialog-row > * {
+    margin: 5px;
+    padding-left: 10px;
+}

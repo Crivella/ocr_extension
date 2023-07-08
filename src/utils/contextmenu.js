@@ -27,8 +27,8 @@ export function createContextMenu(e) {
     menu.style.zIndex = "9999";
 
     document.body.appendChild(menu);
-    document.addEventListener('click', handleGlobalClick)
-    document.addEventListener('contextmenu', handleGlobalRightClick)
+    document.addEventListener('click', handleMenuClick)
+    document.addEventListener('contextmenu', handleMenuRightClick)
     console.log('creating context menu', menu);
 
     const root = ReactDOM.createRoot(menu);
@@ -38,20 +38,43 @@ export function createContextMenu(e) {
 
 }
 
-function handleGlobalClick(e) {
+function handleMenuClick(e) {
     // https://stackoverflow.com/questions/36695438/detect-click-outside-div-using-javascript
-    if (! menu.contains(e.target)) {
-        destroyContextMenu();
-        destroyDialog();
+    if ( menu ) {
+        if ( ! menu.contains(e.target)) {
+            destroyContextMenu();
+        }
+        e.preventDefault();
+        e.stopPropagation();
     }
 }
 
-function handleGlobalRightClick(e) {
-    if (! menu.contains(e.target)) {
-        destroyContextMenu();
-        destroyDialog();
+function handleDialogClick(e) {
+    // https://stackoverflow.com/questions/36695438/detect-click-outside-div-using-javascript
+    if ( dialog ) {
+        if( ! dialog.contains(e.target)) {
+            destroyDialog();
+        }
+        e.preventDefault();
+        e.stopPropagation();
     }
-    else{
+}
+
+function handleMenuRightClick(e) {
+    if ( menu ) {
+        if( ! menu.contains(e.target)) {
+            destroyContextMenu();
+        }
+        e.preventDefault();
+        e.stopPropagation();
+    }
+}
+
+function handleDialogRightClick(e) {
+    if (dialog) {
+        if( ! dialog.contains(e.target)) {
+            destroyDialog();
+        }
         e.preventDefault();
         e.stopPropagation();
     }
@@ -62,8 +85,8 @@ function destroyContextMenu() {
         return;
     }
     menu.remove();
-    document.removeEventListener('click', handleGlobalClick);
-    document.removeEventListener('contextmenu', handleGlobalRightClick);
+    document.removeEventListener('click', handleDialogClick);
+    document.removeEventListener('contextmenu', handleDialogRightClick);
     menu = null;
     target = null;
 }
@@ -84,9 +107,9 @@ function createDialog(translations) {
     row.appendChild(col);
     dialog.appendChild(row);
 
-    translations.forEach((translation) => {
+    translations.forEach((translation, idx) => {
         row = document.createElement('tr');
-        row.className = 'ocr-dialog-row';
+        row.className = `ocr-dialog-row${(idx % 2) + 1}`;
         col = document.createElement('td');
         col.innerText = translation.model;
         row.appendChild(col);
@@ -106,6 +129,9 @@ function createDialog(translations) {
     })
     dialog.appendChild(close);
 
+    document.addEventListener('click', handleDialogClick);
+    document.addEventListener('contextmenu', handleDialogRightClick);
+
     return dialog;
 }
 
@@ -115,6 +141,8 @@ function destroyDialog() {
     }
     dialog.close();
     dialog.remove();
+    document.removeEventListener('click', handleMenuClick);
+    document.removeEventListener('contextmenu', handleMenuRightClick);
     dialog = null;
 }
 
@@ -198,7 +226,7 @@ function TextBoxMenu() {
                                     closeDialog();
                                 }
                             })
-                            dialog.showModal();
+                            dialog.show();
                         });
                     destroyContextMenu();
                     

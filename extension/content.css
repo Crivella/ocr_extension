@@ -116,20 +116,35 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     z-index: 999;
     padding: 5px;
+    font-size: 16px;
 }
 
 .ocr-dialog-close {
     position: absolute;
     top: 0;
     right: 0;
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    height: 25px;
     background-color: #622;
     color: #000;
     cursor: pointer;
+
+    text-align: center;
+    border-radius: 10%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
 }
 
-.ocr-dialog-row > * {
+.ocr-dialog-row1 > * {
+    background-color: rgb(60,0,60,0.9);
+    margin: 5px;
+    padding-left: 10px;
+}
+
+.ocr-dialog-row2 > * {
+    background-color: rgb(0,60,60,0.9);
     margin: 5px;
     padding-left: 10px;
 }

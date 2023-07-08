@@ -105,11 +105,11 @@ function toggleOCR(tab) {
 
 browser.pageAction.onClicked.addListener(toggleOCR);
 
-// browser.menus.create({
-//     id: "textbox-menu",
-//     title: "Test1",
-//     contexts: ["all"],
-// });
+browser.menus.create({
+    id: "selection-translate",
+    title: "Translate text",
+    contexts: ["selection"],
+});
 
 // browser.menus.create({
 //     id: "textbox-menu-2",
@@ -117,9 +117,20 @@ browser.pageAction.onClicked.addListener(toggleOCR);
 //     contexts: ["all"],
 // });
 
-// browser.menus.onClicked.addListener((info, tab) => {
-//     console.log('menu clicked', info, tab);
-// })
+browser.menus.onClicked.addListener((info, tab) => {
+    console.log('menu clicked', info, tab);
+    switch (info.menuItemId) {
+        case "selection-translate":
+            browser.tabs.sendMessage(tab.id, {
+                targetElementId: info.targetElementId,
+                type: 'translate-selection',
+                text: info.selectionText,
+            })
+            break;
+        default:
+            break;
+    }
+})
 
 function BroadcastMessage(msg) {
     browser.tabs.query({}).then((tabs) => {

@@ -49,3 +49,12 @@ export async function getOtherTranslations(text) {
 
     return res.data;
 }
+
+export async function textTranslation(text) {
+    console.log('GET TRANSLATION');
+    const res = await axios.post(`${ENDPOINT}/run_tsl/`, {
+        text: text,
+        })
+
+    return res.data;
+}

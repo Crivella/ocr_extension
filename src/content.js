@@ -1,7 +1,7 @@
 import md5 from 'md5';
 // import './content.css';
 
-import { getOcr, setEndpoint } from './utils/API';
+import { getOcr, setEndpoint, textTranslation } from './utils/API';
 import { base64FromAny } from './utils/blob';
 import { createContextMenu } from './utils/contextmenu';
 import { getSizes } from './utils/image';
@@ -237,6 +237,15 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 break;
             case 'set-color':
                 document.documentElement.style.setProperty('--ocr-text-color', `rgb(${msg.color.join(',')})`);
+                break;
+            case 'translate-selection':
+                // console.log('translate-selection... run', msg);
+                const res = await textTranslation(msg.text);
+                // console.log('translate-selection... res', res);
+                const element = browser.menus.getTargetElement(msg.targetElementId);
+                // console.log('translate-selection... element', element, msg.text, res.text);
+                element.innerText = element.innerText.replace(msg.text, res.text);
+                // element.innerText = element.innerText.replace(
                 break;
             default:
                 console.log('unknown message', msg);

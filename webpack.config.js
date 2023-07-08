@@ -60,7 +60,7 @@ module.exports = {
     // Since some NodeJS modules expect to be running in Node, it is helpful
     // to set this environment var to avoid reference errors.
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env.NODE_ENV': JSON.stringify('development'),
     }),
   ],
   mode: 'development',

@@ -72,3 +72,34 @@
     border: 2px solid #ff0000;
     filter: blur(1px);
 }
+
+.ocr-cmenu {
+    position: absolute;
+    /* display: none; */
+    background-color: #fff;
+    /* border: 1px solid #ccc;
+    border-radius: 2px; */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 999;
+    padding: 5px;
+}
+
+.ocr-cmenu-item {
+    flex-grow: 1;
+    padding: 5px;
+    background-color: #fff;
+    cursor: pointer;
+    border-style: none;
+    text-align: left;
+}
+
+.ocr-cmenu-item:hover {
+    filter: brightness(80%);
+}
+
+.ocr-cmenu-divider {
+    color: #ccc;
+    border-top: 1px solid #ccc;
+    margin: 5px 0;
+    flex-grow: 1;
+}

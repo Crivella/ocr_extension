@@ -3,6 +3,7 @@ import md5 from 'md5';
 
 import { getOcr, setEndpoint } from './utils/API';
 import { base64FromAny } from './utils/blob';
+import { createContextMenu } from './utils/contextmenu';
 import { getSizes } from './utils/image';
 import { drawBox } from './utils/textbox';
 import { unwrapImage, wrapImage } from './utils/wrapper';
@@ -45,6 +46,8 @@ Function used to avoid multiple injection (cleaner than using an if?)
             const textdiv = drawBox({
                 tsl, box, max_width: nw, max_height: nh
             });
+            textdiv.originalText = ocr;
+            textdiv.translatedText = tsl;
             wrapper.appendChild(textdiv);
             // Copy original (OCRed) text to clipboard on click
             textdiv.addEventListener('click', (e) => {
@@ -52,6 +55,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 e.stopPropagation();
                 navigator.clipboard.writeText(ocr);
             })
+            textdiv.addEventListener('contextmenu', createContextMenu)
             ptr.boxes.push(textdiv);
         })
     }

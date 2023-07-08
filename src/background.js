@@ -105,6 +105,22 @@ function toggleOCR(tab) {
 
 browser.pageAction.onClicked.addListener(toggleOCR);
 
+// browser.menus.create({
+//     id: "textbox-menu",
+//     title: "Test1",
+//     contexts: ["all"],
+// });
+
+// browser.menus.create({
+//     id: "textbox-menu-2",
+//     title: "Test2",
+//     contexts: ["all"],
+// });
+
+// browser.menus.onClicked.addListener((info, tab) => {
+//     console.log('menu clicked', info, tab);
+// })
+
 function BroadcastMessage(msg) {
     browser.tabs.query({}).then((tabs) => {
         tabs.forEach((tab) => {

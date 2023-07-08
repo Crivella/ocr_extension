@@ -38,6 +38,7 @@ export function createContextMenu(e) {
 }
 
 function handleGlobalClick(e) {
+    // https://stackoverflow.com/questions/36695438/detect-click-outside-div-using-javascript
     if (! menu.contains(e.target)) {
         destroyContextMenu();
     }

@@ -12,7 +12,7 @@ export function setEndpoint(endpoint) {
 
 async function getOcrLazy(md5Hash) {
     console.log('GET OCR - Lazy');
-    const res = await axios.post(`${ENDPOINT}/test/`, {
+    const res = await axios.post(`${ENDPOINT}/run_ocrtsl/`, {
         md5: md5Hash,
     })
 
@@ -21,7 +21,7 @@ async function getOcrLazy(md5Hash) {
 
 async function getOcrWork(md5Hash, base64data) {
     console.log('GET OCR - Work');
-    const res = await axios.post(`${ENDPOINT}/test/`, {
+    const res = await axios.post(`${ENDPOINT}/run_ocrtsl/`, {
         md5: md5Hash,
         contents: base64data,
     })

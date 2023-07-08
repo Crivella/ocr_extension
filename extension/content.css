@@ -87,6 +87,7 @@
 .ocr-cmenu-item {
     flex-grow: 1;
     padding: 5px;
+    color: #222222;
     background-color: #fff;
     cursor: pointer;
     border-style: none;

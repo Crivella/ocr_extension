@@ -20,6 +20,7 @@
     "react-dom": "^18.2.0",
     "style-loader": "^3.3.3",
     "webpack": "^5.88.1",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "@tanstack/react-query": "^4.29.12"
   }
 }

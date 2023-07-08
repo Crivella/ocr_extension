@@ -239,13 +239,12 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 document.documentElement.style.setProperty('--ocr-text-color', `rgb(${msg.color.join(',')})`);
                 break;
             case 'translate-selection':
-                // console.log('translate-selection... run', msg);
+                console.log('translate-selection... run', msg);
                 const res = await textTranslation(msg.text);
-                // console.log('translate-selection... res', res);
+                console.log('translate-selection... res', res);
                 const element = browser.menus.getTargetElement(msg.targetElementId);
-                // console.log('translate-selection... element', element, msg.text, res.text);
+                console.log('translate-selection... element', element, msg.text, res.text);
                 element.innerText = element.innerText.replace(msg.text, res.text);
-                // element.innerText = element.innerText.replace(
                 break;
             default:
                 console.log('unknown message', msg);

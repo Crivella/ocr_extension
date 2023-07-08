@@ -1,8 +1,11 @@
 import axios from "axios";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from 'react-dom/client';
+
+import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const GlobalContext = createContext();
+const queryClient = new QueryClient();
 
 function EndpointField() {
     const { endpoint, setEndpoint, successEndpoint: success } = useContext(GlobalContext);
@@ -121,8 +124,8 @@ function SelectField({label, name, options, value, setValue, success}) {
             <label htmlFor={name}>{label}</label>
             <select className={myClass} name={name} id={name} value={value} onChange={onChange}>
                 <option value="">--- SELECT ---</option> 
-                {options.map((option) => (
-                    <option value={option}>{option}</option>
+                {options.map((option, idx) => (
+                    <option key={idx} value={option}>{option}</option>
                 ))}
             </select>
         </div>
@@ -179,21 +182,34 @@ function LanguageDstSelect({ success = null }) {
 
 function SubmitUnit({children, target, data}) {
     const { endpoint } = useContext(GlobalContext);
+    const queryClient = useQueryClient();
 
     const [success, setSuccess] = useState(null);
 
-    const onSubmit = useCallback(async (e) => {
-        console.log('submitting', data);
-        e.preventDefault();
-        try {
-            await axios.post(`${endpoint}/${target}/`, data)
-            setSuccess(true);
-            console.log('success');
-        } catch (err) {
-            console.log(err);
+    const updateMutation = useMutation({
+        mutationFn: (data) => axios.post(`${endpoint}/${target}/`, data), 
+        onError: () => {
+            console.log('error');
             setSuccess(false);
+        },
+        onSuccess: () => {
+            console.log('success');
+            setSuccess(true);
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries(['endpoint']);
         }
-    }, [endpoint, target, data]);
+    });
+
+    const onSubmit = useCallback(async (e) => {
+        e.preventDefault();
+        console.log(updateMutation.status)
+        if (updateMutation.isLoading) {
+            return;
+        }
+        console.log('submitting', data);
+        updateMutation.mutate(data);
+    }, [updateMutation, data]);
 
     useEffect(() => {
         setSuccess(null);
@@ -212,7 +228,12 @@ function SubmitUnit({children, target, data}) {
                 return newChild;
                 }
             )}
-            <button onClick={onSubmit}>Submit</button>
+            {
+                updateMutation.isLoading ? 
+                <div className="loading">Loading...</div> 
+                : 
+                <button onClick={onSubmit}>Submit</button>
+            }
         </div>
     )
 }
@@ -255,8 +276,91 @@ function LangUnit() {
     )
 }
 
+async function handshake({ endpoint, signal}) {
+    console.log(`GET ${endpoint}/`);
+    const res = await axios.get(`${endpoint}/`, {}, signal);
 
-function Popup() {
+    return res.data;
+}
+
+function PopUp() {
+    const { 
+        endpoint, setSuccessEndpoint,
+        setOcrModels, setOcrModel, 
+        setTslModels, setTslModel,
+        setLangChoices, setLangSrc, setLangDst,
+    } = useContext(GlobalContext);
+
+
+    const query = useQuery({
+        queryKey: ['endpoint', endpoint],
+        queryFn: ({ signal }) => handshake({ endpoint, signal }),
+        enabled: endpoint !== '',
+        staleTime: 1000 * 60 * 5
+    });
+
+    useEffect(() => {
+        console.log('ENDPOINT', endpoint);
+        // query.refetch();
+    }, [endpoint])
+
+    useEffect(() => {
+        console.log('QUERY', query);
+        if (query.data) {
+            setOcrModels(query.data.OCRModels || []);
+            setTslModels(query.data.TSLModels || []);
+            setLangChoices(query.data.Languages || []);
+            setOcrModel(query.data.ocr_selected || '');
+            setTslModel(query.data.tsl_selected || '');
+            setLangSrc(query.data.lang_src || '');
+            setLangDst(query.data.lang_dst || '');
+
+            browser.runtime.sendMessage({
+                type: 'set-endpoint',
+                endpoint: endpoint,
+            })
+        }
+    }, [query.data])
+
+    useEffect(() => {
+        if (query.isSuccess) {
+            console.log('QUERY - success');
+            setSuccessEndpoint(true);
+        } else {
+            setSuccessEndpoint(false);
+        }
+    }, [query.isSuccess])
+
+    // useEffect(() => {
+    //     // browser.runtime.sendMessage({
+    //     //     type: 'set-lang-src',
+    //     //     lang: langSrc,
+    //     // })
+    //     queryClient.invalidateQueries(['endpoint']);
+    // }, [langSrc])
+
+    // useEffect(() => {
+    //     // browser.runtime.sendMessage({
+    //     //     type: 'set-lang-dst',
+    //     //     lang: langDst,
+    //     // })
+    //     queryClient.invalidateQueries(['endpoint']);
+    // }, [langDst])
+
+    return (
+        <>
+            <EndpointField />
+            <LangUnit />
+            <ModelUnit />
+            {/* <ToggleOCR /> */}
+            <FontScaleField />
+            <RGBField />
+        </>
+    )
+}
+
+
+function Hub() {
     const [fontScale, setFontScale] = useState(1.0);
     const [RGB, setRGB] = useState([0, 0, 0]);
     const [langSrc, setLangSrc] = useState('');
@@ -292,35 +396,6 @@ function Popup() {
     }, [])
 
     useEffect(() => {
-        console.log('useEffect - endpoint: ' + `'${endpoint}'`);
-        if ( ! (endpoint === '') ) {
-            console.log(`GET ${endpoint}/`);
-            axios.get(`${endpoint}/`)
-                .then(res => {
-                    console.log(res.data);
-                    setSuccessEndpoint(true);
-                    setOcrModels(res.data.OCRModels || []);
-                    setTslModels(res.data.TSLModels || []);
-                    setLangChoices(res.data.Languages || []);
-                    setOcrModel(res.data.ocr_selected || '');
-                    setTslModel(res.data.tsl_selected || '');
-                    setLangSrc(res.data.lang_src || '');
-                    setLangDst(res.data.lang_dst || '');
-
-                    browser.runtime.sendMessage({
-                        type: 'set-endpoint',
-                        endpoint: endpoint,
-                    })
-        
-                })
-                .catch(err => {
-                    console.log(err);
-                    setSuccessEndpoint(false);
-                })
-        }
-    }, [endpoint])
-
-    useEffect(() => {
         browser.runtime.sendMessage({
             type: 'set-font-scale',
             fontScale: fontScale,
@@ -334,19 +409,7 @@ function Popup() {
         })
     }, [RGB])
 
-    // useEffect(() => {
-    //     browser.runtime.sendMessage({
-    //         type: 'set-lang-src',
-    //         lang: langSrc,
-    //     })
-    // }, [langSrc])
 
-    // useEffect(() => {
-    //     browser.runtime.sendMessage({
-    //         type: 'set-lang-dst',
-    //         lang: langDst,
-    //     })
-    // }, [langDst])
 
     const newProps = {
         endpoint: endpoint,
@@ -366,21 +429,23 @@ function Popup() {
         // ocrEnabled: ocrEnabled,
         // setOcrEnabled: setOcrEnabled,
         ocrModels: ocrModels,
+        setOcrModels: setOcrModels,
         tslModels: tslModels,
+        setTslModels: setTslModels,
         langChoices: langChoices,
+        setLangChoices: setLangChoices,
         successEndpoint: successEndpoint,
+        setSuccessEndpoint: setSuccessEndpoint,
     }
 
     return (
+        <QueryClientProvider client={queryClient}>
         <GlobalContext.Provider value={newProps}>
-            <EndpointField />
-            <LangUnit />
-            <ModelUnit />
-            {/* <ToggleOCR /> */}
-            <FontScaleField />
-            <RGBField />
+            <PopUp />
         </GlobalContext.Provider>
+        </QueryClientProvider>
     );
 }
 
-ReactDOM.render(<Popup />, document.getElementById("app"));
+const root = ReactDOM.createRoot(document.getElementById("app"));
+root.render(<Hub />);

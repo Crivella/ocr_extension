@@ -124,7 +124,7 @@ browser.menus.onClicked.addListener((info, tab) => {
             browser.tabs.sendMessage(tab.id, {
                 targetElementId: info.targetElementId,
                 type: 'translate-selection',
-                text: info.selectionText,
+                text: info.selectionText.replace('\r', ''),
             })
             break;
         default:

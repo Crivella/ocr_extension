@@ -132,6 +132,18 @@ function SelectField({label, name, options, value, setValue, success}) {
     )
 }
 
+function BOXModelSelect({ success = null }) {
+    const { boxModels, boxModel, setBoxModel } = useContext(GlobalContext);
+
+    return <SelectField 
+        label="BOX Model" 
+        name="box-model" 
+        options={boxModels} 
+        value={boxModel} 
+        setValue={setBoxModel} 
+        success={success} />
+}
+
 function OCRModelSelect({ success = null }) {
     const { ocrModels, ocrModel, setOcrModel } = useContext(GlobalContext);
 
@@ -240,10 +252,11 @@ function SubmitUnit({children, target, data}) {
 
 function ModelUnit() {
     const [data, setData] = useState({}); 
-    const { ocrModel, tslModel } = useContext(GlobalContext);
+    const { boxModel, ocrModel, tslModel } = useContext(GlobalContext);
 
     useEffect(() => {
         setData({
+            box_model_id: boxModel,
             ocr_model_id: ocrModel,
             tsl_model_id: tslModel,
         })
@@ -251,6 +264,7 @@ function ModelUnit() {
 
     return (
         <SubmitUnit target="load" data={data}>
+            <BOXModelSelect />
             <OCRModelSelect />
             <TSLModelSelect />
         </SubmitUnit>   
@@ -286,6 +300,7 @@ async function handshake({ endpoint, signal}) {
 function PopUp() {
     const { 
         endpoint, setSuccessEndpoint,
+        setBoxModels, setBoxModel,
         setOcrModels, setOcrModel, 
         setTslModels, setTslModel,
         setLangChoices, setLangSrc, setLangDst,
@@ -307,9 +322,11 @@ function PopUp() {
     useEffect(() => {
         console.log('QUERY', query);
         if (query.data) {
+            setBoxModels(query.data.BOXModels || []);
             setOcrModels(query.data.OCRModels || []);
             setTslModels(query.data.TSLModels || []);
             setLangChoices(query.data.Languages || []);
+            setBoxModel(query.data.box_selected || '');
             setOcrModel(query.data.ocr_selected || '');
             setTslModel(query.data.tsl_selected || '');
             setLangSrc(query.data.lang_src || '');
@@ -367,8 +384,10 @@ function Hub() {
     const [langDst, setLangDst] = useState('');
     const [langChoices, setLangChoices] = useState([]);
     const [endpoint, setEndpoint] = useState('');
+    const [boxModel, setBoxModel] = useState('');
     const [ocrModel, setOcrModel] = useState('');
     const [tslModel, setTslModel] = useState('');
+    const [boxModels, setBoxModels] = useState([]);
     const [ocrModels, setOcrModels] = useState([]);
     const [tslModels, setTslModels] = useState([]);
     const [successEndpoint, setSuccessEndpoint] = useState(null);
@@ -414,6 +433,8 @@ function Hub() {
     const newProps = {
         endpoint: endpoint,
         setEndpoint: setEndpoint,
+        boxModel: boxModel,
+        setBoxModel: setBoxModel,
         ocrModel: ocrModel,
         setOcrModel: setOcrModel,
         tslModel: tslModel,
@@ -428,6 +449,8 @@ function Hub() {
         setLangDst: setLangDst,
         // ocrEnabled: ocrEnabled,
         // setOcrEnabled: setOcrEnabled,
+        boxModels: boxModels,
+        setBoxModels: setBoxModels,
         ocrModels: ocrModels,
         setOcrModels: setOcrModels,
         tslModels: tslModels,

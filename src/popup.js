@@ -253,14 +253,14 @@ function SubmitUnit({children, target, data}) {
 function ModelUnit() {
     const [data, setData] = useState({}); 
     const { boxModel, ocrModel, tslModel } = useContext(GlobalContext);
-
+    
     useEffect(() => {
         setData({
             box_model_id: boxModel,
             ocr_model_id: ocrModel,
             tsl_model_id: tslModel,
         })
-    }, [ocrModel, tslModel])
+    }, [boxModel, ocrModel, tslModel])
 
     return (
         <SubmitUnit target="load" data={data}>

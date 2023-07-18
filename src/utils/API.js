@@ -43,8 +43,8 @@ export async function getOcr(md5Hash, base64data) {
 
 export async function getOtherTranslations(text) {
     console.log('GET OTHER TRANSLATIONS');
-    const res = await axios.post(`${ENDPOINT}/get_trans/`, {
-        text: text,
+    const res = await axios.get(`${ENDPOINT}/get_trans/`, {
+        params: {text: text},
     })
 
     return res.data;

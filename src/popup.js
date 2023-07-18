@@ -263,7 +263,7 @@ function ModelUnit() {
     }, [boxModel, ocrModel, tslModel])
 
     return (
-        <SubmitUnit target="load" data={data}>
+        <SubmitUnit target="set_models" data={data}>
             <BOXModelSelect />
             <OCRModelSelect />
             <TSLModelSelect />

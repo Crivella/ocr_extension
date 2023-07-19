@@ -1,10 +1,13 @@
 {
-	"name": "src",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
+	"name": "ocr_extension",
+	"version": "0.1.0",
+	"description": "A browser extension working with a backend server running OCR+translation to in-place translate all images on an active tab.",
+  "license": "GPL-3.0",
+  "author": "Davide Grassano",
+  "homepage": "https://github.com/Crivella/ocr_extension",
 	"scripts": {
-		"build": "node ./node_modules/webpack/bin/webpack.js --progress",
+		"build": "node ./node_modules/.bin/webpack --progress",
+    "build:prod": "node ./node_modules/.bin/webpack --mode production",
 		"build:watch": "npm run build -- -w",
 		"start": "npm run build && web-ext run -s extension/",
 		"test": "echo \"Error: no test specified\" && exit 1"
@@ -22,5 +25,10 @@
 		"md5": "^2.3.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
-	}
+	},
+  "babel": {
+    "presets": [
+      "@babel/preset-react"
+    ]
+  }
 }

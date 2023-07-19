@@ -1,9 +1,14 @@
-// import './textbox.css';
-// import styles from './textbox.css';
-// const textboxClass = styles["patch-text"];
+/*
+    * This file contains functions to draw textboxes on the image
+*/
 const textboxClass = "patch-text";
 
-
+/*
+Draw a textbox on the image.
+box is a list of 4 numbers representing: [left, bottom, right, top]
+tsl is the translated text
+max_width and max_height are the dimensions of the image (used to adjust the font size).
+*/
 export function drawBox({box, tsl, max_width, max_height}) {
     const [l,b,r,t] = box;
     const w = r-l;

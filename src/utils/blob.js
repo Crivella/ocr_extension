@@ -1,5 +1,11 @@
+/*
+    * This file contains functions for getting and handling blobs
+*/
 import { getCanvas } from './image';
 
+/*
+Get the image
+*/
 export async function fetchBlobFromUrl(url) {
     console.log('FETCHING', url);
 
@@ -10,6 +16,9 @@ export async function fetchBlobFromUrl(url) {
     return blob;
 }
 
+/*
+Turn a blob into a base64 string
+*/
 export function blobToBase64(blob) {
     var reader = new FileReader();
 
@@ -26,6 +35,9 @@ export function blobToBase64(blob) {
     })
 }
 
+/*
+Get a blob from a canvas
+*/
 export function blobFromCanvas(canvas) {
     return new Promise((resolve, reject) => {
         canvas.toBlob((blob) => {
@@ -34,6 +46,9 @@ export function blobFromCanvas(canvas) {
     })
 }
 
+/*
+Get a blob from an img or canvas
+*/
 export async function base64FromAny(obj) {
     var base64data;
 

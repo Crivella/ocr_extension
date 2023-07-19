@@ -1,3 +1,6 @@
+/*
+This is the main content script that is injected into the page
+*/
 import md5 from 'md5';
 // import './content.css';
 
@@ -145,6 +148,10 @@ Function used to avoid multiple injection (cleaner than using an if?)
         }
     }
 
+    /*
+    Used to handle 'DOMNodeRemoved' event on the document.
+    EG: some sites can remove images to the page using JS.
+    */
     function handleNodeRemoved(e) {
         const tag = e.target.tagName;
         if (['IMG', 'CANVAS'].includes(tag)) {
@@ -172,6 +179,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
      - process all img/canvas already on the page
      - add event listeners
         - 'DOMNodeInserted': process new images added to the page
+        - 'DOMNodeRemoved': remove all the textboxes if an image is removed
     */
     function enableOCR() {
         if (OCR === true) {

@@ -1,12 +1,17 @@
-import axios from "axios";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import ReactDOM from 'react-dom/client';
 
 import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { handshake, post } from "./utils/API";
+
 const GlobalContext = createContext();
 const queryClient = new QueryClient();
 
+/*
+React component to draw a field for the endpoint.
+The field will be highlighted in green or red depending on the success of the handshake.
+*/
 function EndpointField() {
     const { endpoint, setEndpoint, successEndpoint: success } = useContext(GlobalContext);
 
@@ -53,6 +58,9 @@ function EndpointField() {
     )
 }
 
+/*
+React component to draw a field for the font scale.
+*/
 function FontScaleField() {
     const { fontScale, setFontScale } = useContext(GlobalContext);
 
@@ -70,6 +78,9 @@ function FontScaleField() {
     )
 }
 
+/*
+React component to draw a field/s for the font RGB color.
+*/
 function RGBField() {
     const { RGB, setRGB } = useContext(GlobalContext);
 
@@ -101,7 +112,11 @@ function RGBField() {
 }
 
 
-
+/*
+Generic React component to draw a field for a list of selections.
+The field will be highlighted in green or red depending on the success variable.
+EG. field included in a submission form, that will set success for all its child components.
+*/
 function SelectField({label, name, options, value, setValue, success}) {
     const [myClass, setClass] = useState(''); // ['success', 'error', '']
 
@@ -132,6 +147,9 @@ function SelectField({label, name, options, value, setValue, success}) {
     )
 }
 
+/*
+Field for the list of available box models.
+*/
 function BOXModelSelect({ success = null }) {
     const { boxModels, boxModel, setBoxModel } = useContext(GlobalContext);
 
@@ -144,6 +162,9 @@ function BOXModelSelect({ success = null }) {
         success={success} />
 }
 
+/*
+Field for the list of available OCR models.
+*/
 function OCRModelSelect({ success = null }) {
     const { ocrModels, ocrModel, setOcrModel } = useContext(GlobalContext);
 
@@ -156,6 +177,9 @@ function OCRModelSelect({ success = null }) {
         success={success} />
 }
 
+/*
+Field for the list of available TSL models.
+*/
 function TSLModelSelect({ success = null }) {
     const { tslModels, tslModel, setTslModel } = useContext(GlobalContext);
 
@@ -168,6 +192,9 @@ function TSLModelSelect({ success = null }) {
         success={success} />
 }
 
+/*
+Field for the list of available source languages.
+*/
 function LanguageSrcSelect({ success = null }) {
     const { langChoices, langSrc, setLangSrc } = useContext(GlobalContext);
 
@@ -180,6 +207,9 @@ function LanguageSrcSelect({ success = null }) {
         success={success} />
 }
 
+/*
+Field for the list of available destination languages.
+*/
 function LanguageDstSelect({ success = null }) {
     const { langChoices, langDst, setLangDst } = useContext(GlobalContext);
     
@@ -192,14 +222,18 @@ function LanguageDstSelect({ success = null }) {
         success={success} />
 }
 
+/*
+Generic React component to draw a submission form.
+The props `target` and `data` should be given by the parent component.
+This abstract the creation of a form, and handling data submission and success/failure.
+*/
 function SubmitUnit({children, target, data}) {
-    const { endpoint } = useContext(GlobalContext);
     const queryClient = useQueryClient();
 
     const [success, setSuccess] = useState(null);
 
     const updateMutation = useMutation({
-        mutationFn: (data) => axios.post(`${endpoint}/${target}/`, data), 
+        mutationFn: (data) => post(target, data), 
         onError: () => {
             console.log('error');
             setSuccess(false);
@@ -250,6 +284,9 @@ function SubmitUnit({children, target, data}) {
     )
 }
 
+/*
+React component to draw the form for the model selection.
+*/
 function ModelUnit() {
     const [data, setData] = useState({}); 
     const { boxModel, ocrModel, tslModel } = useContext(GlobalContext);
@@ -271,6 +308,9 @@ function ModelUnit() {
     )
 }
 
+/*
+React component to draw the form for the language selection.
+*/
 function LangUnit() {
     const [data, setData] = useState({});
     const { langSrc, langDst } = useContext(GlobalContext);
@@ -290,13 +330,9 @@ function LangUnit() {
     )
 }
 
-async function handshake({ endpoint, signal}) {
-    console.log(`GET ${endpoint}/`);
-    const res = await axios.get(`${endpoint}/`, {}, signal);
-
-    return res.data;
-}
-
+/*
+React component to draw the poup.
+*/
 function PopUp() {
     const { 
         endpoint, setSuccessEndpoint,
@@ -316,7 +352,6 @@ function PopUp() {
 
     useEffect(() => {
         console.log('ENDPOINT', endpoint);
-        // query.refetch();
     }, [endpoint])
 
     useEffect(() => {
@@ -348,35 +383,20 @@ function PopUp() {
         }
     }, [query.isSuccess])
 
-    // useEffect(() => {
-    //     // browser.runtime.sendMessage({
-    //     //     type: 'set-lang-src',
-    //     //     lang: langSrc,
-    //     // })
-    //     queryClient.invalidateQueries(['endpoint']);
-    // }, [langSrc])
-
-    // useEffect(() => {
-    //     // browser.runtime.sendMessage({
-    //     //     type: 'set-lang-dst',
-    //     //     lang: langDst,
-    //     // })
-    //     queryClient.invalidateQueries(['endpoint']);
-    // }, [langDst])
-
     return (
         <>
             <EndpointField />
             <LangUnit />
             <ModelUnit />
-            {/* <ToggleOCR /> */}
             <FontScaleField />
             <RGBField />
         </>
     )
 }
 
-
+/*
+React component to handle the context and messaging with the background script.
+*/
 function Hub() {
     const [fontScale, setFontScale] = useState(1.0);
     const [RGB, setRGB] = useState([0, 0, 0]);
@@ -470,5 +490,6 @@ function Hub() {
     );
 }
 
+// Render the popup
 const root = ReactDOM.createRoot(document.getElementById("app"));
 root.render(<Hub />);

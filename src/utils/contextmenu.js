@@ -1,3 +1,6 @@
+/*
+    * Handle the creation of context menus used for right-clicking on textboxes.
+*/
 import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactDOM from 'react-dom/client';
 
@@ -9,6 +12,9 @@ var dialog = null;
 
 const menuContext = createContext({});
 
+/*
+Create a context menu for the given target.
+*/
 export function createContextMenu(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -38,6 +44,10 @@ export function createContextMenu(e) {
 
 }
 
+/*
+Destroy context menu when clicking outside of it.
+Stop click propagation otherwise.
+*/
 function handleMenuClick(e) {
     // https://stackoverflow.com/questions/36695438/detect-click-outside-div-using-javascript
     if ( menu ) {
@@ -49,6 +59,10 @@ function handleMenuClick(e) {
     }
 }
 
+/*
+Destroy dialog when clicking outside of it.
+Stop click propagation otherwise.
+*/
 function handleDialogClick(e) {
     // https://stackoverflow.com/questions/36695438/detect-click-outside-div-using-javascript
     if ( dialog ) {
@@ -60,6 +74,10 @@ function handleDialogClick(e) {
     }
 }
 
+/*
+Destroy context menu when right-clicking outside of it.
+Stop click propagation otherwise.
+*/
 function handleMenuRightClick(e) {
     if ( menu ) {
         if( ! menu.contains(e.target)) {
@@ -70,6 +88,10 @@ function handleMenuRightClick(e) {
     }
 }
 
+/*
+Destroy dialog when right-clicking outside of it.
+Stop click propagation otherwise.
+*/
 function handleDialogRightClick(e) {
     if (dialog) {
         if( ! dialog.contains(e.target)) {
@@ -80,6 +102,9 @@ function handleDialogRightClick(e) {
     }
 }
 
+/*
+Function to destroy the context menu and remove all event listeners.
+*/
 function destroyContextMenu() {
     if (! menu) {
         return;
@@ -91,6 +116,9 @@ function destroyContextMenu() {
     target = null;
 }
 
+/*
+Function to create a dialog containing a table of all translations for a given textbox.
+*/
 function createDialog(translations) {
     dialog = document.createElement('dialog');
     dialog.classList.add('ocr-dialog');
@@ -135,6 +163,9 @@ function createDialog(translations) {
     return dialog;
 }
 
+/*
+Destroy dialog and remove all event listeners.
+*/
 function destroyDialog() {
     if (! dialog) {
         return;
@@ -146,14 +177,19 @@ function destroyDialog() {
     dialog = null;
 }
 
+/*
+Remove the target textbox.
+*/
 function removeBox() {
     if (target) {
         target.remove();
     }
 }
 
+/*
+React component to render an item in the context menu.
+*/
 function MenuItem({ id, children }) {
-
     const { setValue } = useContext(menuContext);
 
     const onClick = (e) => {
@@ -172,6 +208,9 @@ function MenuItem({ id, children }) {
     )
 }
 
+/*
+React component to render a divider in the context menu.
+*/
 function MenuDivider() {
     return (
         <div style={{display: 'flex'}}>
@@ -180,6 +219,9 @@ function MenuDivider() {
     )  
 }
 
+/*
+Map of action ids to have only one place where to change them.
+*/
 const actionIds = {
     close: '1',
     copyOriginal: '2',
@@ -187,9 +229,13 @@ const actionIds = {
     getOtherTranslations: '4',
 }
 
+/*
+React component to render the context menu.
+*/
 function TextBoxMenu() {
     const [value, setValue] = useState(null);
 
+    // Handle an action being selected.
     useEffect(() => {
         if (value) {
             console.log('value', value);

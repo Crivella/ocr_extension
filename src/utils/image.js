@@ -1,3 +1,9 @@
+/*
+    * Image related functions
+*/
+/*
+Get the sizes of an image
+*/
 export function getSizes(img) {
     var nw;
     var nh;
@@ -12,6 +18,9 @@ export function getSizes(img) {
     return [nw, nh];
 }
 
+/*
+Transform an image node to a canvas node
+*/
 export function getCanvas(img) {
     console.log('Generating blob using canvas');
     // Make sure to use real dimension to draw image

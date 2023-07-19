@@ -1,13 +1,12 @@
-// import { randomId } from './defaults.js';
-// import { randomId } from './defaults.js';
-// import styles from './wrapper.css';
-// import './wrapper.css';
-
-// export const wrapperClass = styles["ocr-wrapper"];
-// export const wrappedClass = styles["ocr-wrapped"];
+/*
+    * This file contains functions for wrapping and unwrapping images.
+*/
 export const wrapperClass = "ocr-wrapper";
 export const wrappedClass = "ocr-wrapped";
 
+/*
+Generate a working clone of an image/canvas node.
+*/
 function cloneNode(node) {
     const res = node.cloneNode();
     if (node.tagName == 'IMG') {
@@ -22,6 +21,10 @@ function cloneNode(node) {
     return res;
 }
 
+/*
+Wrap an image node with a div with ocr-wrapper class.
+Add the ocr-wrapped class to the image node.
+*/
 export function wrapImage(img) {
     // This is necessary since some sites can replace an already wrapped image
     // using JS (at somepoint this should be detected automatically)
@@ -50,6 +53,9 @@ export function wrapImage(img) {
     return [newImg, wrapper]
 }
 
+/*
+Unwrap an image node, by removing the wrapper div and add-on classes from the node.
+*/
 export function unwrapImage(img) {
     console.log('unwrapping image');
 

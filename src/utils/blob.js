@@ -69,19 +69,21 @@ Get a blob from an img or canvas
 */
 export async function base64FromAny(obj) {
     var base64data;
+    var blob;
 
     if (obj.tagName == 'IMG') {
-        const blob = await fetchBlobFromUrl(obj.src);
-        const [fmt, data] = await blobToBase64(blob);
+        blob = await fetchBlobFromUrl(obj.src);
+        var [fmt, data] = await blobToBase64(blob);
         if ( ! ['jpeg', 'png', 'gif'].includes(fmt) ) {
             console.log('not supported format', fmt, 'falling back to canvas');
-            const canvas = getCanvas(img);
+            const canvas = getCanvas(obj);
             blob = await blobFromCanvas(canvas);
+            console.log('Generated blob:',blob)
             data = (await blobToBase64(blob))[1];
         }
         base64data = data;
     } else if (obj.tagName == 'CANVAS') {
-        const blob = await blobFromCanvas(obj);
+        blob = await blobFromCanvas(obj);
         const [fmt, data] = await blobToBase64(blob);
         base64data = data;
     } else {

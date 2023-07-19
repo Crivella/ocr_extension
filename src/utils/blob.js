@@ -75,7 +75,7 @@ export async function base64FromAny(obj) {
         const [fmt, data] = await blobToBase64(blob);
         if ( ! ['jpeg', 'png', 'gif'].includes(fmt) ) {
             console.log('not supported format', fmt, 'falling back to canvas');
-            const canvas = getCanvas(img);
+            const canvas = getCanvas(obj);
             blob = await blobFromCanvas(canvas);
             data = (await blobToBase64(blob))[1];
         }

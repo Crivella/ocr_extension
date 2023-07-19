@@ -19,6 +19,18 @@ The purpose of the extension is also to control the state of the backend server 
 
 ### Using the extension
 
+As of now, the extension is under review for being listed as an official Firefox add-on.
+If you want to use it for now you can do it by installing it as a [temporary extension](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension#installing):
+
+- Download the entire repo
+- Using node v16 run (inside the main directory of the project)
+  - `npm install`
+  - `npm run build:prod`
+- Type `about:debugging` in your address bar
+- On the left click `This Firefox`
+- Click `Load Temporary add-on`
+- Select the `manifest.json` file inside the `extension` directory
+
 The extension will provide
 
 - A pop-up menu in the extension bar ![popup](images/popup.png)

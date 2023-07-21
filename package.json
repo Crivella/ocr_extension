@@ -6,8 +6,8 @@
   "author": "Davide Grassano",
   "homepage": "https://github.com/Crivella/ocr_extension",
 	"scripts": {
-		"build": "node ./node_modules/.bin/webpack --progress",
-    "build:prod": "node ./node_modules/.bin/webpack --mode production",
+		"build": "node ./node_modules/webpack/bin/webpack.js --progress",
+    "build:prod": "node ./node_modules/webpack/bin/webpack.js --mode production",
 		"build:watch": "npm run build -- -w",
 		"start": "npm run build && web-ext run -s extension/",
 		"test": "echo \"Error: no test specified\" && exit 1"

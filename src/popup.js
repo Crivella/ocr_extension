@@ -250,8 +250,10 @@ function SubmitUnit({children, target, data}) {
 
     const [success, setSuccess] = useState(null);
 
+    const { endpoint } = useContext(GlobalContext);
+
     const updateMutation = useMutation({
-        mutationFn: (data) => post(target, data), 
+        mutationFn: (data) => post(endpoint, target, data), 
         onError: () => {
             console.log('error');
             setSuccess(false);

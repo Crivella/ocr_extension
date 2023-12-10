@@ -50,9 +50,9 @@ export async function handshake({ endpoint, signal}) {
 Generic function to send a POST request to the server.
 Used by React components in in the popup script.
 */
-export async function post(target, data) {
-    console.log(`POST ${ENDPOINT}/${target}/`);
-    const res = await axios.post(`${ENDPOINT}/${target}/`, data);
+export async function post(endpoint, target, data) {
+    console.log(`POST ${endpoint}/${target}/`);
+    const res = await axios.post(`${endpoint}/${target}/`, data);
 
     return res;
 }
@@ -121,6 +121,19 @@ export async function textTranslation(text) {
     const res = await axios.post(`${ENDPOINT}/run_tsl/`, {
         text: text,
         })
+
+    return res.data;
+}
+
+/*
+Set manual translation for a given textbox.
+*/
+export async function setManualTranslation(text, translation) {
+    console.log('SET MANUAL TRANSLATION');
+    const res = await axios.post(`${ENDPOINT}/set_manual_translation/`, {
+        text: text,
+        translation: translation,
+    })
 
     return res.data;
 }

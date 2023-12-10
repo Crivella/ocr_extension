@@ -23,7 +23,7 @@ import md5 from 'md5';
 
 import { getOcr, setEndpoint, textTranslation } from './utils/API';
 import { base64FromAny } from './utils/blob';
-import { createContextMenu } from './utils/contextmenu';
+import { createContextMenu, destroyContextMenu, destroyDialog } from './utils/contextmenu';
 import { getSizes } from './utils/image';
 import { drawBox } from './utils/textbox';
 import { unwrapImage, wrapImage } from './utils/wrapper';
@@ -228,7 +228,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         console.log('disabling OCR');
         document.removeEventListener('DOMNodeInserted', handleNodeInserted);
         document.removeEventListener('DOMNodeRemoved', handleNodeRemoved);
-
+        
         console.log(images);
         var i = images.length;
         while (i--) {
@@ -241,6 +241,9 @@ Function used to avoid multiple injection (cleaner than using an if?)
             unwrapImage(ptr.img);
             images.splice(i, 1);
         }
+        
+        destroyDialog();
+        destroyContextMenu();
     }
 
     /*

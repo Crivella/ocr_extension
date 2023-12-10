@@ -248,10 +248,12 @@ This abstract the creation of a form, and handling data submission and success/f
 function SubmitUnit({children, target, data}) {
     const queryClient = useQueryClient();
 
+    const { endpoint } = useContext(GlobalContext);
+
     const [success, setSuccess] = useState(null);
 
     const updateMutation = useMutation({
-        mutationFn: (data) => post(target, data), 
+        mutationFn: (data) => post(endpoint, target, data), 
         onError: () => {
             console.log('error');
             setSuccess(false);

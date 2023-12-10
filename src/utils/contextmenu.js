@@ -22,7 +22,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactDOM from 'react-dom/client';
 
-import { getOtherTranslations } from "./API";
+import { getOtherTranslations, setManualTranslation } from "./API";
 
 var menu = null;
 var target = null;
@@ -93,6 +93,17 @@ function handleDialogClick(e) {
 }
 
 /*
+Destroy menus when pressing escape.
+*/
+function handleEscape(e) {
+    if (e.key === 'Escape') {
+        destroyContextMenu();
+        destroyDialog();
+        document.removeEventListener('keydown', handleEscape);
+    }
+}
+
+/*
 Destroy context menu when right-clicking outside of it.
 Stop click propagation otherwise.
 */
@@ -123,13 +134,13 @@ function handleDialogRightClick(e) {
 /*
 Function to destroy the context menu and remove all event listeners.
 */
-function destroyContextMenu() {
+export function destroyContextMenu() {
     if (! menu) {
         return;
     }
     menu.remove();
-    document.removeEventListener('click', handleDialogClick);
-    document.removeEventListener('contextmenu', handleDialogRightClick);
+    document.removeEventListener('click', handleMenuClick);
+    document.removeEventListener('contextmenu', handleMenuRightClick);
     menu = null;
     target = null;
 }
@@ -137,7 +148,7 @@ function destroyContextMenu() {
 /*
 Function to create a dialog containing a table of all translations for a given textbox.
 */
-function createDialog(translations) {
+function createDialogTranslations(translations) {
     dialog = document.createElement('dialog');
     dialog.classList.add('ocr-dialog');
 
@@ -175,6 +186,7 @@ function createDialog(translations) {
     })
     dialog.appendChild(close);
 
+    document.addEventListener('keydown', handleEscape);
     document.addEventListener('click', handleDialogClick);
     document.addEventListener('contextmenu', handleDialogRightClick);
 
@@ -182,16 +194,54 @@ function createDialog(translations) {
 }
 
 /*
+Function to create a dialog with a form to provide a manual translation.
+*/
+function createDialogManual(target) {
+    dialog = document.createElement('dialog');
+    dialog.classList.add('ocr-dialog');
+
+    var form = document.createElement('form');
+    var textarea = document.createElement('input');
+    textarea.type = 'text';
+    textarea.value = target.translatedText;
+    textarea.className = 'ocr-dialog-textarea';
+    // textarea.className = 'ocr-dialog-textarea';
+    // textarea.innerText = target.translatedText;
+    form.appendChild(textarea);
+    var submit = document.createElement('input');
+    submit.type = 'submit';
+    submit.value = 'Submit';
+    submit.className = 'ocr-dialog-submit';
+    form.appendChild(submit);
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('submitting', textarea.value);
+        setManualTranslation(target.originalText, textarea.value);
+        target.translatedText = textarea.value;
+        target.innerText = textarea.value;
+        destroyDialog();
+    })
+    dialog.appendChild(form);
+
+    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('click', handleDialogClick);
+    document.addEventListener('contextmenu', handleDialogRightClick);
+
+    return dialog;
+}
+/*
 Destroy dialog and remove all event listeners.
 */
-function destroyDialog() {
+export function destroyDialog() {
     if (! dialog) {
         return;
     }
     dialog.close();
     dialog.remove();
-    document.removeEventListener('click', handleMenuClick);
-    document.removeEventListener('contextmenu', handleMenuRightClick);
+    document.removeEventListener('click', handleDialogClick);
+    document.removeEventListener('contextmenu', handleDialogRightClick);
     dialog = null;
 }
 
@@ -245,6 +295,7 @@ const actionIds = {
     copyOriginal: '2',
     copyTranslated: '3',
     getOtherTranslations: '4',
+    manualTranslation: '5',
 }
 
 /*
@@ -282,18 +333,21 @@ function TextBoxMenu() {
                         .then((res) => {
                             console.log('got other translations', res);
 
-                            createDialog(res.translations);
+                            createDialogTranslations(res.translations);
 
                             document.body.appendChild(dialog);
-                            document.addEventListener('keydown', (e) => {
-                                if (e.key === 'Escape') {
-                                    closeDialog();
-                                }
-                            })
                             dialog.show();
                         });
                     destroyContextMenu();
                     
+                    break;
+                }
+                case actionIds.manualTranslation: {
+                    console.log(`manual translation ${target.translatedText}`);
+                    createDialogManual(target);
+                    document.body.appendChild(dialog);
+                    dialog.show();
+                    destroyContextMenu();
                     break;
                 }
                 default: {
@@ -316,6 +370,8 @@ function TextBoxMenu() {
             <MenuItem id={actionIds.copyTranslated}>Copy Translated</MenuItem>
             <MenuDivider />
             <MenuItem id={actionIds.getOtherTranslations}>Get Other Translations</MenuItem>
+            <MenuDivider />
+            <MenuItem id={actionIds.manualTranslation}>Set manual translation</MenuItem>
         </menuContext.Provider>
     )
 }

@@ -29,7 +29,8 @@
     "<all_urls>",
     "activeTab",
     "tabs",
-    "menus"
+    "menus",
+    "storage"
   ]
 
 }

@@ -32,13 +32,21 @@ const APPLICABLE_PROTOCOLS = ["http:", "https:"];
 const enabledIds = [];
 
 /* Hub controlled variables */
-var ENDPOINT = 'http://127.0.0.1:4000';
-var FONT_SCALE = 1.0;
-var R = 170;
-var G = 68;
-var B = 68;
+var ENDPOINT;
+var FONT_SCALE;
+var R;
+var G;
+var B;
 var LANG_SRC;
 var LANG_DST;
+
+browser.storage.local.get().then((res) => {
+    ENDPOINT = res.endpoint || 'http://127.0.0.1:4000';
+    FONT_SCALE = res.fontScale || 1.0;
+    R = res.R || 170;
+    G = res.G || 68;
+    B = res.B || 68;
+})
 
 /*
 Returns true only if the URL's protocol is in APPLICABLE_PROTOCOLS.
@@ -172,6 +180,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case 'set-endpoint': {
             console.log('setting endpoint', msg.endpoint);
             ENDPOINT = msg.endpoint;
+            browser.storage.local.set({endpoint: ENDPOINT});
             // Broadcast the endpoint to all tabs
             BroadcastMessage({
                 type: 'set-endpoint',
@@ -187,6 +196,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case 'set-font-scale': {
             console.log('setting font scale', msg.fontScale);
             FONT_SCALE = msg.fontScale;
+            browser.storage.local.set({fontScale: FONT_SCALE});
             // Broadcast the font scale to all tabs
             BroadcastMessage({
                 type: 'set-font-scale',
@@ -202,6 +212,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case 'set-color': {
             console.log('setting color', msg.color);
             [R, G, B] = msg.color;
+            browser.storage.local.set({R: R, G: G, B: B});
             // Broadcast the color to all tabs
             BroadcastMessage({
                 type: 'set-color',

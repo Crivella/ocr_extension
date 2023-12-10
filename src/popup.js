@@ -23,6 +23,7 @@ import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient
 
 import { handshake, post } from "./utils/API";
 
+const MaxLangField = 25;
 const GlobalContext = createContext();
 const queryClient = new QueryClient();
 
@@ -135,7 +136,7 @@ Generic React component to draw a field for a list of selections.
 The field will be highlighted in green or red depending on the success variable.
 EG. field included in a submission form, that will set success for all its child components.
 */
-function SelectField({label, name, options, value, setValue, success}) {
+function SelectField({label, name, options, option_names, value, setValue, success}) {
     const [myClass, setClass] = useState(''); // ['success', 'error', '']
 
     const onChange = (e) => {
@@ -158,7 +159,7 @@ function SelectField({label, name, options, value, setValue, success}) {
             <select className={myClass} name={name} id={name} value={value} onChange={onChange}>
                 <option value="">--- SELECT ---</option> 
                 {options.map((option, idx) => (
-                    <option key={idx} value={option}>{option}</option>
+                    <option key={idx} value={option}>{option_names[idx]}</option>
                 ))}
             </select>
         </div>
@@ -174,7 +175,8 @@ function BOXModelSelect({ success = null }) {
     return <SelectField 
         label="BOX Model" 
         name="box-model" 
-        options={boxModels} 
+        options={boxModels}
+        option_names={boxModels}
         value={boxModel} 
         setValue={setBoxModel} 
         success={success} />
@@ -190,6 +192,7 @@ function OCRModelSelect({ success = null }) {
         label="OCR Model" 
         name="ocr-model" 
         options={ocrModels} 
+        option_names={ocrModels} 
         value={ocrModel} 
         setValue={setOcrModel} 
         success={success} />
@@ -205,6 +208,7 @@ function TSLModelSelect({ success = null }) {
         label="Translation Model"
         name="tsl-model"
         options={tslModels}
+        option_names={tslModels}
         value={tslModel}
         setValue={setTslModel}
         success={success} />
@@ -214,12 +218,13 @@ function TSLModelSelect({ success = null }) {
 Field for the list of available source languages.
 */
 function LanguageSrcSelect({ success = null }) {
-    const { langChoices, langSrc, setLangSrc } = useContext(GlobalContext);
+    const { langChoices, langSrc, setLangSrc, langChoicesHR } = useContext(GlobalContext);
 
     return <SelectField
         label="Source Language"
         name="lang-src"
         options={langChoices}
+        option_names={langChoicesHR.map((e) => e.length > MaxLangField ? e.slice(0, MaxLangField-3) + '...' : e)}
         value={langSrc}
         setValue={setLangSrc}
         success={success} />
@@ -229,12 +234,13 @@ function LanguageSrcSelect({ success = null }) {
 Field for the list of available destination languages.
 */
 function LanguageDstSelect({ success = null }) {
-    const { langChoices, langDst, setLangDst } = useContext(GlobalContext);
+    const { langChoices, langDst, setLangDst, langChoicesHR } = useContext(GlobalContext);
     
     return <SelectField
         label="Destination Language"
         name="lang-dst"
         options={langChoices}
+        option_names={langChoicesHR.map((e) => e.length > MaxLangField ? e.slice(0, MaxLangField-3) + '...' : e)}
         value={langDst}
         setValue={setLangDst}
         success={success} />
@@ -360,6 +366,7 @@ function PopUp() {
         setOcrModels, setOcrModel, 
         setTslModels, setTslModel,
         setLangChoices, setLangSrc, setLangDst,
+        setLangChoicesHR,
     } = useContext(GlobalContext);
 
 
@@ -381,6 +388,7 @@ function PopUp() {
             setOcrModels(query.data.OCRModels || []);
             setTslModels(query.data.TSLModels || []);
             setLangChoices(query.data.Languages || []);
+            setLangChoicesHR(query.data.Languages_hr || []);
             setBoxModel(query.data.box_selected || '');
             setOcrModel(query.data.ocr_selected || '');
             setTslModel(query.data.tsl_selected || '');
@@ -423,6 +431,7 @@ function Hub() {
     const [langSrc, setLangSrc] = useState('');
     const [langDst, setLangDst] = useState('');
     const [langChoices, setLangChoices] = useState([]);
+    const [langChoicesHR, setLangChoicesHR] = useState([]);
     const [endpoint, setEndpoint] = useState('');
     const [boxModel, setBoxModel] = useState('');
     const [ocrModel, setOcrModel] = useState('');
@@ -497,6 +506,8 @@ function Hub() {
         setTslModels: setTslModels,
         langChoices: langChoices,
         setLangChoices: setLangChoices,
+        langChoicesHR: langChoicesHR,
+        setLangChoicesHR: setLangChoicesHR,
         successEndpoint: successEndpoint,
         setSuccessEndpoint: setSuccessEndpoint,
     }

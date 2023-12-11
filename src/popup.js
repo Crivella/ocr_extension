@@ -28,6 +28,42 @@ const GlobalContext = createContext();
 const queryClient = new QueryClient();
 
 /*
+React component to switch the theme of the popup.
+*/
+function ThemeSwitch() {
+    const [theme, setTheme] = useState('dark');
+
+    useEffect(() => {
+        browser.storage.local.get().then((res) => {
+            setTheme(res.popupTheme || 'dark');
+        })
+    }, [])
+
+    useEffect(() => {
+        document.documentElement.style.setProperty('--theme-body-bg-color', `var(--theme-${theme}-body-bg-color)`);
+        document.documentElement.style.setProperty('--theme-color', `var(--theme-${theme}-color)`);
+        document.documentElement.style.setProperty('--theme-text-bg-color', `var(--theme-${theme}-text-bg-color)`);
+    }, [theme])
+
+    const onClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        browser.storage.local.set({popupTheme: newTheme});
+        setTheme(newTheme);
+    }
+
+    return (
+        <div onClick={onClick}>
+            <label class="theme-switch">
+                <input type="checkbox" checked={theme === 'light'} />
+                <span class="slider round"></span>
+            </label>
+        </div>
+    )
+}
+
+/*
 React component to draw a field for the endpoint.
 The field will be highlighted in green or red depending on the success of the handshake.
 */
@@ -426,6 +462,7 @@ function PopUp() {
 
     return (
         <>
+            <ThemeSwitch />
             <EndpointField />
             <Checkbox label="Show Translated" name="show-translated" value={showTranslated} setValue={setShowTranslated} />
             <LangUnit />

@@ -28,15 +28,6 @@ import { getSizes } from './utils/image';
 import { drawBox } from './utils/textbox';
 import { unwrapImage, wrapImage } from './utils/wrapper';
 
-var OCR = false;
-
-const writingModes = {
-    'ja': 'vertical-rl',
-    'ko': 'vertical-rl',
-    'ch_sim': 'vertical-rl',
-    'ch_tra': 'vertical-rl',
-};
-
 /*
 This is the main content script that is injected into the page
 Function used to avoid multiple injection (cleaner than using an if?)
@@ -48,7 +39,9 @@ Function used to avoid multiple injection (cleaner than using an if?)
     }
     window.hasRun5124677111 = true;
 
+    var OCR = false;
     var showTranslated = true;
+    var orientation = 'horizontal-tb';
     const images = [];
 
     /*
@@ -286,7 +279,8 @@ Function used to avoid multiple injection (cleaner than using an if?)
             case 'show-original-text':
                 console.log('show-original', msg);
                 showTranslated = false;
-                document.documentElement.style.setProperty('--ocr-text-writing-mode', writingModes[msg.lang] || 'horizontal-tb');
+                orientation = msg.orientation;
+                document.documentElement.style.setProperty('--ocr-text-writing-mode', orientation || 'horizontal-tb');
                 images.forEach((ptr) => {
                     ptr.boxes.forEach((box) => {
                         box.innerText = box.originalText;
@@ -296,7 +290,8 @@ Function used to avoid multiple injection (cleaner than using an if?)
             case 'show-translated-text':
                 console.log('show-translated');
                 showTranslated = true;
-                document.documentElement.style.setProperty('--ocr-text-writing-mode', writingModes[msg.lang] || 'horizontal-tb');
+                orientation = msg.orientation;
+                document.documentElement.style.setProperty('--ocr-text-writing-mode', orientation || 'horizontal-tb');
                 images.forEach((ptr) => {
                     ptr.boxes.forEach((box) => {
                         box.innerText = box.translatedText;

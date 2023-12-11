@@ -35,6 +35,7 @@ const enabledIds = [];
 var ENDPOINT;
 var FONT_SCALE;
 var SHOW_TRANSLATED;
+var TEXT_ORIENTATION;
 var R;
 var G;
 var B;
@@ -45,6 +46,7 @@ browser.storage.local.get().then((res) => {
     ENDPOINT = res.endpoint || 'http://127.0.0.1:4000';
     FONT_SCALE = res.fontScale || 1.0;
     SHOW_TRANSLATED = res.showTranslated === undefined ? true : res.showTranslated;
+    TEXT_ORIENTATION = res.textOrientation || 'horizontal-tb';
     LANG_SRC = res.langSrc;
     LANG_DST = res.langDst;
     R = res.R || 170;
@@ -246,18 +248,23 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             break;
         }
         case 'set-show-text': {
-            console.log('showing translated text', msg, LANG_SRC, LANG_DST);
+            console.log('showing translated text', msg);
             SHOW_TRANSLATED = msg.active;
+            TEXT_ORIENTATION = msg.orientation;
             browser.storage.local.set({showTranslated: SHOW_TRANSLATED});
+            browser.storage.local.set({orientation: TEXT_ORIENTATION});
             BroadcastMessage({
-                type: msg.active ? 'show-translated-text' : 'show-original-text',
-                lang: msg.active ? LANG_DST : LANG_SRC,
+                type: SHOW_TRANSLATED ? 'show-translated-text' : 'show-original-text',
+                orientation: TEXT_ORIENTATION,
             })
             break;
         }
         case 'get-show-text': {
             console.log('getting show text', SHOW_TRANSLATED);
-            sendResponse({showTranslated: SHOW_TRANSLATED});
+            sendResponse({
+                showTranslated: SHOW_TRANSLATED,
+                orientation: TEXT_ORIENTATION,
+            });
             break;
         }
 

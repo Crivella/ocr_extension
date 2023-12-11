@@ -138,6 +138,24 @@ React component to draw a field/s for the font RGB color.
 */
 function RGBField() {
     const { RGB, setRGB } = useContext(GlobalContext);
+    const [hexRGB, setHexRGB] = useState();
+
+    useEffect(() => {
+        if (RGB[0] !== undefined) {
+            setHexRGB(`#${RGB.map((e) => e.toString(16).padStart(2, '0')).join('')}`);
+        }
+    }, [RGB])
+
+    // https://stackoverflow.com/questions/61821924/firefox-addon-input-type-color-closing-addon-popup-on-firefox
+    // const onPick = (e) => {
+    //     console.log(e.target.value);
+    //     const hex = e.target.value.slice(1);
+    //     const r = parseInt(hex.slice(0, 2), 16);
+    //     const g = parseInt(hex.slice(2, 4), 16);
+    //     const b = parseInt(hex.slice(4, 6), 16);
+    //     setRGB([r, g, b]);
+    //     // setRGB(e.target.value);
+    // }
 
     return (
         <div className="field">
@@ -162,6 +180,7 @@ function RGBField() {
                 min="0" max="255" step="1"
                 onChange={(e) => setRGB([RGB[0], RGB[1], e.target.value])}
             />
+            {/* <input type="color" id="color" name="color" value={hexRGB} onChange={onPick} /> */}
         </div>
     )
 }
@@ -405,6 +424,22 @@ function Checkbox({label, name, value, setValue}) {
     )
 }
 
+function DisplayMode() {
+    const { showTranslated, setShowTranslated, orientation, setOrientation } = useContext(GlobalContext);
+
+    return (
+        <div className="field">
+            <Checkbox label="Show Translated" name="show-translated" value={showTranslated} setValue={setShowTranslated} />
+            <label htmlFor="orientation">Display Mode</label>
+            <select name="orientation" id="orientation" value={orientation} onChange={(e) => {setOrientation(e.target.value)}}>
+                <option value="horizontal-tb">Horiz-tb</option>
+                <option value="vertical-rl">Vert-rl</option>
+                <option value="vertical-lr">Vert-lr</option>
+            </select>
+        </div>
+    )
+}
+
 /*
 React component to draw the poup.
 */
@@ -415,7 +450,6 @@ function PopUp() {
         setOcrModels, setOcrModel, 
         setTslModels, setTslModel,
         setLangChoices, setLangChoicesHR, setLangSrc, setLangDst,
-        showTranslated, setShowTranslated
     } = useContext(GlobalContext);
 
 
@@ -464,7 +498,7 @@ function PopUp() {
         <>
             <ThemeSwitch />
             <EndpointField />
-            <Checkbox label="Show Translated" name="show-translated" value={showTranslated} setValue={setShowTranslated} />
+            <DisplayMode />
             <LangUnit />
             <ModelUnit />
             <FontScaleField />
@@ -492,7 +526,7 @@ function Hub() {
     const [tslModels, setTslModels] = useState([]);
     const [successEndpoint, setSuccessEndpoint] = useState(null);
     const [showTranslated, setShowTranslated] = useState();
-
+    const [orientation, setOrientation] = useState();
     useEffect(() => {
         console.log('useEffect - init');
         browser.runtime.sendMessage({
@@ -517,6 +551,7 @@ function Hub() {
             type: 'get-show-text',
         }).then((response) => {
             setShowTranslated(response.showTranslated);
+            setOrientation(response.orientation);
         })
 
     }, [])
@@ -562,43 +597,30 @@ function Hub() {
             browser.runtime.sendMessage({
                 type: 'set-show-text',
                 active: showTranslated,
+                orientation: orientation,
             })
         }
-    }, [showTranslated])
+    }, [showTranslated, orientation])
 
     const newProps = {
-        endpoint: endpoint,
-        setEndpoint: setEndpoint,
-        boxModel: boxModel,
-        setBoxModel: setBoxModel,
-        ocrModel: ocrModel,
-        setOcrModel: setOcrModel,
-        tslModel: tslModel,
-        setTslModel: setTslModel,
-        fontScale: fontScale,
-        setFontScale: setFontScale,
-        RGB: RGB,
-        setRGB: setRGB,
-        langSrc: langSrc,
-        setLangSrc: setLangSrc,
-        langDst: langDst,
-        setLangDst: setLangDst,
+        endpoint: endpoint, setEndpoint: setEndpoint,
+        boxModel: boxModel, setBoxModel: setBoxModel,
+        ocrModel: ocrModel, setOcrModel: setOcrModel,
+        tslModel: tslModel, setTslModel: setTslModel,
+        fontScale: fontScale, setFontScale: setFontScale,
+        RGB: RGB, setRGB: setRGB,
+        langSrc: langSrc, setLangSrc: setLangSrc,
+        langDst: langDst, setLangDst: setLangDst,
         // ocrEnabled: ocrEnabled,
         // setOcrEnabled: setOcrEnabled,
-        boxModels: boxModels,
-        setBoxModels: setBoxModels,
-        ocrModels: ocrModels,
-        setOcrModels: setOcrModels,
-        tslModels: tslModels,
-        setTslModels: setTslModels,
-        langChoices: langChoices,
-        setLangChoices: setLangChoices,
-        langChoicesHR: langChoicesHR,
-        setLangChoicesHR: setLangChoicesHR,
-        successEndpoint: successEndpoint,
-        setSuccessEndpoint: setSuccessEndpoint,
-        showTranslated: showTranslated,
-        setShowTranslated: setShowTranslated,
+        boxModels: boxModels, setBoxModels: setBoxModels,
+        ocrModels: ocrModels, setOcrModels: setOcrModels,
+        tslModels: tslModels, setTslModels: setTslModels,
+        langChoices: langChoices, setLangChoices: setLangChoices,
+        langChoicesHR: langChoicesHR, setLangChoicesHR: setLangChoicesHR,
+        successEndpoint: successEndpoint, setSuccessEndpoint: setSuccessEndpoint,
+        showTranslated: showTranslated, setShowTranslated: setShowTranslated,
+        orientation: orientation, setOrientation: setOrientation,
     }
 
     return (

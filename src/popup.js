@@ -440,8 +440,8 @@ function PopUp() {
 React component to handle the context and messaging with the background script.
 */
 function Hub() {
-    const [fontScale, setFontScale] = useState(1.0);
-    const [RGB, setRGB] = useState([0, 0, 0]);
+    const [fontScale, setFontScale] = useState();
+    const [RGB, setRGB] = useState([undefined, undefined, undefined]);
     const [langSrc, setLangSrc] = useState('');
     const [langDst, setLangDst] = useState('');
     const [langChoices, setLangChoices] = useState([]);
@@ -454,7 +454,7 @@ function Hub() {
     const [ocrModels, setOcrModels] = useState([]);
     const [tslModels, setTslModels] = useState([]);
     const [successEndpoint, setSuccessEndpoint] = useState(null);
-    const [showTranslated, setShowTranslated] = useState(true);
+    const [showTranslated, setShowTranslated] = useState();
 
     useEffect(() => {
         console.log('useEffect - init');
@@ -485,38 +485,48 @@ function Hub() {
     }, [])
 
     useEffect(() => {
-        browser.runtime.sendMessage({
-            type: 'set-lang-src',
-            lang: langSrc,
-        })
+        if (langSrc) {
+            browser.runtime.sendMessage({
+                type: 'set-lang-src',
+                lang: langSrc,
+            })
+        }
     }, [langSrc])
 
     useEffect(() => {
-        browser.runtime.sendMessage({
-            type: 'set-lang-dst',
-            lang: langDst,
-        })
+        if (langDst) {
+            browser.runtime.sendMessage({
+                type: 'set-lang-dst',
+                lang: langDst,
+            })
+        }
     }, [langDst])
 
     useEffect(() => {
-        browser.runtime.sendMessage({
-            type: 'set-font-scale',
-            fontScale: fontScale,
-        })
+        if (fontScale !== undefined){
+            browser.runtime.sendMessage({
+                type: 'set-font-scale',
+                fontScale: fontScale,
+            })
+        }
     }, [fontScale])
 
     useEffect(() => {
-        browser.runtime.sendMessage({
-            type: 'set-color',
-            color: RGB,
-        })
+        if (RGB[0] !== undefined) {
+            browser.runtime.sendMessage({
+                type: 'set-color',
+                color: RGB,
+            })
+        }
     }, [RGB])
 
     useEffect(() => {
-        browser.runtime.sendMessage({
-            type: 'set-show-text',
-            active: showTranslated,
-        })
+        if (showTranslated !== undefined) {
+            browser.runtime.sendMessage({
+                type: 'set-show-text',
+                active: showTranslated,
+            })
+        }
     }, [showTranslated])
 
     const newProps = {

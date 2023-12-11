@@ -45,6 +45,8 @@ browser.storage.local.get().then((res) => {
     ENDPOINT = res.endpoint || 'http://127.0.0.1:4000';
     FONT_SCALE = res.fontScale || 1.0;
     SHOW_TRANSLATED = res.showTranslated === undefined ? true : res.showTranslated;
+    LANG_SRC = res.langSrc;
+    LANG_DST = res.langDst;
     R = res.R || 170;
     G = res.G || 68;
     B = res.B || 68;
@@ -114,6 +116,10 @@ function enableOCR(tab) {
     // browser.tabs.insertCSS({code: CSS});
     browser.tabs.sendMessage(tab.id, {
         type: 'enable-ocr',
+    })
+    browser.tabs.sendMessage(tab.id, {
+        type: SHOW_TRANSLATED ? 'show-translated-text' : 'show-original-text',
+        lang: SHOW_TRANSLATED ? LANG_DST : LANG_SRC,
     })
 }
 
@@ -225,13 +231,13 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case 'set-lang-src': {
             console.log('setting lang src', msg.lang);
             LANG_SRC = msg.lang;
-            // browser.storage.local.set({langSrc: LANG_SRC});
+            browser.storage.local.set({langSrc: LANG_SRC});
             break;
         }
         case 'set-lang-dst': {
             console.log('setting lang dst', msg.lang);
             LANG_DST = msg.lang;
-            // browser.storage.local.set({langDst: LANG_DST});
+            browser.storage.local.set({langDst: LANG_DST});
             break;
         }
         case 'get-color': {

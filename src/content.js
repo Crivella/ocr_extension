@@ -284,7 +284,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 element.innerText = element.innerText.replace(msg.text, res.text);
                 break;
             case 'show-original-text':
-                console.log('show-original');
+                console.log('show-original', msg);
                 showTranslated = false;
                 document.documentElement.style.setProperty('--ocr-text-writing-mode', writingModes[msg.lang] || 'horizontal-tb');
                 images.forEach((ptr) => {

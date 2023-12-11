@@ -356,6 +356,19 @@ function LangUnit() {
     )
 }
 
+function Checkbox({label, name, value, setValue}) {
+    return (
+        <div className="field">
+            <label htmlFor={name}>{label}</label>
+            <input
+                type="checkbox" id={name} name={name}
+                checked={value}
+                onChange={(e) => setValue(e.target.checked)}
+            />
+        </div>
+    )
+}
+
 /*
 React component to draw the poup.
 */
@@ -365,8 +378,8 @@ function PopUp() {
         setBoxModels, setBoxModel,
         setOcrModels, setOcrModel, 
         setTslModels, setTslModel,
-        setLangChoices, setLangSrc, setLangDst,
-        setLangChoicesHR,
+        setLangChoices, setLangChoicesHR, setLangSrc, setLangDst,
+        showTranslated, setShowTranslated
     } = useContext(GlobalContext);
 
 
@@ -414,6 +427,7 @@ function PopUp() {
     return (
         <>
             <EndpointField />
+            <Checkbox label="Show Translated" name="show-translated" value={showTranslated} setValue={setShowTranslated} />
             <LangUnit />
             <ModelUnit />
             <FontScaleField />
@@ -440,6 +454,7 @@ function Hub() {
     const [ocrModels, setOcrModels] = useState([]);
     const [tslModels, setTslModels] = useState([]);
     const [successEndpoint, setSuccessEndpoint] = useState(null);
+    const [showTranslated, setShowTranslated] = useState(true);
 
     useEffect(() => {
         console.log('useEffect - init');
@@ -461,7 +476,27 @@ function Hub() {
             setRGB(response.color);
         })
 
+        browser.runtime.sendMessage({
+            type: 'get-show-text',
+        }).then((response) => {
+            setShowTranslated(response.showTranslated);
+        })
+
     }, [])
+
+    useEffect(() => {
+        browser.runtime.sendMessage({
+            type: 'set-lang-src',
+            lang: langSrc,
+        })
+    }, [langSrc])
+
+    useEffect(() => {
+        browser.runtime.sendMessage({
+            type: 'set-lang-dst',
+            lang: langDst,
+        })
+    }, [langDst])
 
     useEffect(() => {
         browser.runtime.sendMessage({
@@ -477,7 +512,12 @@ function Hub() {
         })
     }, [RGB])
 
-
+    useEffect(() => {
+        browser.runtime.sendMessage({
+            type: 'set-show-text',
+            active: showTranslated,
+        })
+    }, [showTranslated])
 
     const newProps = {
         endpoint: endpoint,
@@ -510,6 +550,8 @@ function Hub() {
         setLangChoicesHR: setLangChoicesHR,
         successEndpoint: successEndpoint,
         setSuccessEndpoint: setSuccessEndpoint,
+        showTranslated: showTranslated,
+        setShowTranslated: setShowTranslated,
     }
 
     return (

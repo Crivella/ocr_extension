@@ -12,6 +12,7 @@
     --ocr-text-word-wrap: break-word;
     --ocr-text-white-space: break-spaces;
     --ocr-text-font-scale: 1;
+    --ocr-text-writing-mode: horizontal-tb;
 }
 
 .ocr-wrapper {
@@ -33,6 +34,7 @@
 
 .patch-text {
     visibility: hidden;
+    writing-mode: var(--ocr-text-writing-mode);
 }
 
 .ocr-wrapped ~ .patch-text {

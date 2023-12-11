@@ -34,6 +34,7 @@ const enabledIds = [];
 /* Hub controlled variables */
 var ENDPOINT;
 var FONT_SCALE;
+var SHOW_TRANSLATED;
 var R;
 var G;
 var B;
@@ -43,6 +44,7 @@ var LANG_DST;
 browser.storage.local.get().then((res) => {
     ENDPOINT = res.endpoint || 'http://127.0.0.1:4000';
     FONT_SCALE = res.fontScale || 1.0;
+    SHOW_TRANSLATED = res.showTranslated === undefined ? true : res.showTranslated;
     R = res.R || 170;
     G = res.G || 68;
     B = res.B || 68;
@@ -220,11 +222,39 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             })
             break;
         }
+        case 'set-lang-src': {
+            console.log('setting lang src', msg.lang);
+            LANG_SRC = msg.lang;
+            // browser.storage.local.set({langSrc: LANG_SRC});
+            break;
+        }
+        case 'set-lang-dst': {
+            console.log('setting lang dst', msg.lang);
+            LANG_DST = msg.lang;
+            // browser.storage.local.set({langDst: LANG_DST});
+            break;
+        }
         case 'get-color': {
             console.log('getting color', [R, G, B]);
             sendResponse({color: [R, G, B]});
             break;
         }
+        case 'set-show-text': {
+            console.log('showing translated text', msg, LANG_SRC, LANG_DST);
+            SHOW_TRANSLATED = msg.active;
+            browser.storage.local.set({showTranslated: SHOW_TRANSLATED});
+            BroadcastMessage({
+                type: msg.active ? 'show-translated-text' : 'show-original-text',
+                lang: msg.active ? LANG_DST : LANG_SRC,
+            })
+            break;
+        }
+        case 'get-show-text': {
+            console.log('getting show text', SHOW_TRANSLATED);
+            sendResponse({showTranslated: SHOW_TRANSLATED});
+            break;
+        }
+
 
         default:
             break;

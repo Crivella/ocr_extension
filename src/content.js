@@ -40,6 +40,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
     window.hasRun5124677111 = true;
 
     var OCR = false;
+    var OPTIONS = {};
     var showTranslated = true;
     var orientation = 'horizontal-tb';
     const images = [];
@@ -109,7 +110,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         var ocr;
         img.classList.add('ocr-loading');
         try {
-            ocr = await getOcr(md5Hash, base64data);
+            ocr = await getOcr(md5Hash, base64data, OPTIONS);
         } catch (err) {
             console.log(err);
             img.classList.add('ocr-error');
@@ -298,6 +299,10 @@ Function used to avoid multiple injection (cleaner than using an if?)
                     })
                 })
                 break
+            case 'set-selected-options':
+                console.log('set-selected-options', msg);
+                OPTIONS = msg.options;
+                break;
             default:
                 console.log('unknown message', msg);
         }

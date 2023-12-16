@@ -26,6 +26,7 @@ export function SubmitUnit({children, target, data, endpoint}) {
         },
         onSettled: () => {
             queryClient.invalidateQueries(['endpoint']);
+            queryClient.invalidateQueries(['options']);
         }
     });
 

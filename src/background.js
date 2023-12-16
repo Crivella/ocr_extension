@@ -41,6 +41,10 @@ var G;
 var B;
 var LANG_SRC;
 var LANG_DST;
+var SELECTED_OPTIONS;
+var BOX_MODEL;
+var OCR_MODEL;
+var TSL_MODEL;
 
 browser.storage.local.get().then((res) => {
     ENDPOINT = res.endpoint || 'http://127.0.0.1:4000';
@@ -52,6 +56,7 @@ browser.storage.local.get().then((res) => {
     R = res.R || 170;
     G = res.G || 68;
     B = res.B || 68;
+    SELECTED_OPTIONS = res.selectedOptions || {};
 })
 
 /*
@@ -265,6 +270,26 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 showTranslated: SHOW_TRANSLATED,
                 orientation: TEXT_ORIENTATION,
             });
+            break;
+        }
+        case 'set-models': {
+            BOX_MODEL = msg.boxModel;
+            OCR_MODEL = msg.ocrModel;
+            TSL_MODEL = msg.tslModel;
+            break;
+        }
+        case 'set-selected-options': {
+            console.log('setting selected options', msg.options);
+            SELECTED_OPTIONS = msg.options;
+            browser.storage.local.set({selectedOptions: SELECTED_OPTIONS});
+            BroadcastMessage({
+                type: 'set-selected-options',
+                options: {
+                    ...SELECTED_OPTIONS[BOX_MODEL],
+                    ...SELECTED_OPTIONS[OCR_MODEL],
+                    ...SELECTED_OPTIONS[TSL_MODEL],
+                }
+            })
             break;
         }
 

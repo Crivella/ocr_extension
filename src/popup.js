@@ -21,44 +21,17 @@ import ReactDOM from 'react-dom/client';
 
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 
+import { AdvancedOptions } from "./components/collapsableForm";
 import { GlobalContext } from "./components/context";
-import { EndpointField, FontScaleField, RGBField } from "./components/fields";
+import { EndpointField } from "./components/fields";
+import { RenderOptionsForm } from "./components/renderOptions";
 import { LangUnit } from "./components/submitUnitLang";
 import { ModelUnit } from "./components/submitUnitModel";
 import { ThemeSwitch } from "./components/themeSwitch";
-import { handshake } from "./utils/API";
+import { get, handshake } from "./utils/API";
 
 const queryClient = new QueryClient();
 
-
-function Checkbox({label, name, value, setValue}) {
-    return (
-        <div className="field">
-            <label htmlFor={name}>{label}</label>
-            <input
-                type="checkbox" id={name} name={name}
-                checked={value}
-                onChange={(e) => setValue(e.target.checked)}
-            />
-        </div>
-    )
-}
-
-function DisplayMode() {
-    const { showTranslated, setShowTranslated, orientation, setOrientation } = useContext(GlobalContext);
-
-    return (
-        <div className="field">
-            <Checkbox label="Show Translated" name="show-translated" value={showTranslated} setValue={setShowTranslated} />
-            <label htmlFor="orientation">Display Mode</label>
-            <select name="orientation" id="orientation" value={orientation} onChange={(e) => {setOrientation(e.target.value)}}>
-                <option value="horizontal-tb">Horiz-tb</option>
-                <option value="vertical-rl">Vert-rl</option>
-                <option value="vertical-lr">Vert-lr</option>
-            </select>
-        </div>
-    )
-}
 
 /*
 React component to draw the poup.
@@ -70,6 +43,7 @@ function PopUp() {
         setOcrModels, setOcrModel, 
         setTslModels, setTslModel,
         setLangChoices, setLangChoicesHR, setLangSrc, setLangDst,
+        setAllowedOptions,
     } = useContext(GlobalContext);
 
 
@@ -80,8 +54,15 @@ function PopUp() {
         staleTime: 1000 * 60 * 5
     });
 
+    const queryOptions = useQuery({
+        queryKey: ['options', endpoint],
+        queryFn: ({ signal }) => get(endpoint, 'get_active_options',{}, signal),
+        enabled: endpoint !== '',
+        staleTime: 1000 * 60 * 5
+    });
+
     useEffect(() => {
-        console.log('QUERY', query);
+        console.log('QUERY handshake', query);
         if (query.data) {
             setBoxModels(query.data.BOXModels || []);
             setOcrModels(query.data.OCRModels || []);
@@ -110,15 +91,23 @@ function PopUp() {
         }
     }, [query.isSuccess])
 
+    useEffect(() => {
+        console.log('QUERY OPTIONS', queryOptions);
+        if (queryOptions.data) {
+            console.log('QUERY OPTIONS - success');
+            console.log(queryOptions.data);
+            setAllowedOptions(queryOptions.data.options);
+        }
+    }, [queryOptions.data])
+ 
     return (
         <>
             <ThemeSwitch />
             <EndpointField />
-            <DisplayMode />
             <LangUnit />
             <ModelUnit />
-            <FontScaleField />
-            <RGBField />
+            <RenderOptionsForm />
+            <AdvancedOptions />
         </>
     )
 }
@@ -143,6 +132,9 @@ export function Hub() {
     const [successEndpoint, setSuccessEndpoint] = useState(null);
     const [showTranslated, setShowTranslated] = useState();
     const [orientation, setOrientation] = useState();
+    const [allowedOptions, setAllowedOptions] = useState(undefined);
+    const [selectedOptions, setSelectedOptions] = useState(undefined);
+
     useEffect(() => {
         console.log('useEffect - init');
         browser.runtime.sendMessage({
@@ -169,6 +161,9 @@ export function Hub() {
             setShowTranslated(response.showTranslated);
             setOrientation(response.orientation);
         })
+        browser.storage.local.get('selectedOptions').then((response) => {
+            setSelectedOptions(response.selectedOptions || {});
+        })
 
     }, [])
 
@@ -191,6 +186,15 @@ export function Hub() {
     }, [langDst])
 
     useEffect(() => {
+        browser.runtime.sendMessage({
+            type: 'set-models',
+            boxModel: boxModel,
+            ocrModel: ocrModel,
+            tslModel: tslModel,
+        })
+    }, [boxModel, ocrModel, tslModel])
+
+    useEffect(() => {
         if (fontScale !== undefined){
             browser.runtime.sendMessage({
                 type: 'set-font-scale',
@@ -209,6 +213,15 @@ export function Hub() {
     }, [RGB])
 
     useEffect(() => {
+        if (selectedOptions !== undefined) {
+            browser.runtime.sendMessage({
+                type: 'set-selected-options',
+                options: selectedOptions
+            })
+        }
+    }, [selectedOptions])
+
+    useEffect(() => {
         if (showTranslated !== undefined) {
             browser.runtime.sendMessage({
                 type: 'set-show-text',
@@ -217,6 +230,11 @@ export function Hub() {
             })
         }
     }, [showTranslated, orientation])
+
+    useEffect(() => {
+        console.log('useEffect - selectedOptions');
+        console.log(selectedOptions);
+    }, [selectedOptions])
 
     const newProps = {
         endpoint: endpoint, setEndpoint: setEndpoint,
@@ -237,6 +255,8 @@ export function Hub() {
         successEndpoint: successEndpoint, setSuccessEndpoint: setSuccessEndpoint,
         showTranslated: showTranslated, setShowTranslated: setShowTranslated,
         orientation: orientation, setOrientation: setOrientation,
+        allowedOptions: allowedOptions, setAllowedOptions: setAllowedOptions,
+        selectedOptions: selectedOptions, setSelectedOptions: setSelectedOptions,
     }
 
     return (

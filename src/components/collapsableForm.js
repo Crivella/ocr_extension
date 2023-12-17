@@ -91,7 +91,7 @@ function OptionField({ name, modelType, type, def, description}) {
             case 'int':
                 return <input type="number" id={name} name={name} value={value} onChange={onChange} />
             case 'float':
-                return <input type="number" id={name} name={name} value={value} onChange={onChange} />
+                return <input type="number" id={name} name={name} step="0.1" value={value} onChange={onChange} />
             case 'str':
                 return <input type="text" id={name} name={name} value={value} onChange={onChange} />
             default:

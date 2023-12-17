@@ -214,10 +214,20 @@ function createDialogManual(target) {
     submit.className = 'ocr-dialog-submit';
     form.appendChild(submit);
 
-    form.addEventListener('submit', (e) => {
+    submit.addEventListener('click', (e) => {
+        console.log('submitting', textarea.value);
         e.preventDefault();
         e.stopPropagation();
+        setManualTranslation(target.originalText, textarea.value);
+        target.translatedText = textarea.value;
+        target.innerText = textarea.value;
+        destroyDialog();
+    })
+
+    form.addEventListener('submit', (e) => {
         console.log('submitting', textarea.value);
+        e.preventDefault();
+        e.stopPropagation();
         setManualTranslation(target.originalText, textarea.value);
         target.translatedText = textarea.value;
         target.innerText = textarea.value;

@@ -43,6 +43,12 @@ Function used to avoid multiple injection (cleaner than using an if?)
     var OPTIONS = {};
     var showTranslated = true;
     var orientation = 'horizontal-tb';
+
+    browser.storage.local.get().then((res) => {
+        showTranslated = res.showTranslated === undefined ? true : res.showTranslated;
+        orientation = res.textOrientation || 'horizontal-tb';
+        OPTIONS = res.selectedOptions || {};
+    })
     const images = [];
 
     /*

@@ -186,15 +186,6 @@ export function Hub() {
     }, [langDst])
 
     useEffect(() => {
-        browser.runtime.sendMessage({
-            type: 'set-models',
-            boxModel: boxModel,
-            ocrModel: ocrModel,
-            tslModel: tslModel,
-        })
-    }, [boxModel, ocrModel, tslModel])
-
-    useEffect(() => {
         if (fontScale !== undefined){
             browser.runtime.sendMessage({
                 type: 'set-font-scale',

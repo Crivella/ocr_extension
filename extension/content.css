@@ -17,7 +17,7 @@
 
 .ocr-wrapper {
     position: relative;
-    border: 2px solid var(--ocr-wrapper-border-color);
+    border: 1px solid var(--ocr-wrapper-border-color);
     justify-content: center;
     display: inline-block;
 }
@@ -67,7 +67,7 @@
 }
 
 .ocr-loading {
-    filter: blur(2px);
+    filter: blur(1px);
 }
 
 .ocr-error {

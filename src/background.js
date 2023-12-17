@@ -32,13 +32,29 @@ const APPLICABLE_PROTOCOLS = ["http:", "https:"];
 const enabledIds = [];
 
 /* Hub controlled variables */
-var ENDPOINT = 'http://127.0.0.1:4000';
-var FONT_SCALE = 1.0;
-var R = 170;
-var G = 68;
-var B = 68;
+var ENDPOINT;
+var FONT_SCALE;
+var SHOW_TRANSLATED;
+var TEXT_ORIENTATION;
+var R;
+var G;
+var B;
 var LANG_SRC;
 var LANG_DST;
+var SELECTED_OPTIONS;
+
+browser.storage.local.get().then((res) => {
+    ENDPOINT = res.endpoint || 'http://127.0.0.1:4000';
+    FONT_SCALE = res.fontScale || 1.0;
+    SHOW_TRANSLATED = res.showTranslated === undefined ? true : res.showTranslated;
+    TEXT_ORIENTATION = res.textOrientation || 'horizontal-tb';
+    LANG_SRC = res.langSrc;
+    LANG_DST = res.langDst;
+    R = res.R || 170;
+    G = res.G || 68;
+    B = res.B || 68;
+    SELECTED_OPTIONS = res.selectedOptions || {};
+})
 
 /*
 Returns true only if the URL's protocol is in APPLICABLE_PROTOCOLS.
@@ -104,6 +120,10 @@ function enableOCR(tab) {
     // browser.tabs.insertCSS({code: CSS});
     browser.tabs.sendMessage(tab.id, {
         type: 'enable-ocr',
+    })
+    browser.tabs.sendMessage(tab.id, {
+        type: SHOW_TRANSLATED ? 'show-translated-text' : 'show-original-text',
+        lang: SHOW_TRANSLATED ? LANG_DST : LANG_SRC,
     })
 }
 
@@ -172,6 +192,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case 'set-endpoint': {
             console.log('setting endpoint', msg.endpoint);
             ENDPOINT = msg.endpoint;
+            browser.storage.local.set({endpoint: ENDPOINT});
             // Broadcast the endpoint to all tabs
             BroadcastMessage({
                 type: 'set-endpoint',
@@ -187,6 +208,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case 'set-font-scale': {
             console.log('setting font scale', msg.fontScale);
             FONT_SCALE = msg.fontScale;
+            browser.storage.local.set({fontScale: FONT_SCALE});
             // Broadcast the font scale to all tabs
             BroadcastMessage({
                 type: 'set-font-scale',
@@ -202,6 +224,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case 'set-color': {
             console.log('setting color', msg.color);
             [R, G, B] = msg.color;
+            browser.storage.local.set({R: R, G: G, B: B});
             // Broadcast the color to all tabs
             BroadcastMessage({
                 type: 'set-color',
@@ -209,11 +232,54 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             })
             break;
         }
+        case 'set-lang-src': {
+            console.log('setting lang src', msg.lang);
+            LANG_SRC = msg.lang;
+            browser.storage.local.set({langSrc: LANG_SRC});
+            break;
+        }
+        case 'set-lang-dst': {
+            console.log('setting lang dst', msg.lang);
+            LANG_DST = msg.lang;
+            browser.storage.local.set({langDst: LANG_DST});
+            break;
+        }
         case 'get-color': {
             console.log('getting color', [R, G, B]);
             sendResponse({color: [R, G, B]});
             break;
         }
+        case 'set-show-text': {
+            console.log('showing translated text', msg);
+            SHOW_TRANSLATED = msg.active;
+            TEXT_ORIENTATION = msg.orientation;
+            browser.storage.local.set({showTranslated: SHOW_TRANSLATED});
+            browser.storage.local.set({orientation: TEXT_ORIENTATION});
+            BroadcastMessage({
+                type: SHOW_TRANSLATED ? 'show-translated-text' : 'show-original-text',
+                orientation: TEXT_ORIENTATION,
+            })
+            break;
+        }
+        case 'get-show-text': {
+            console.log('getting show text', SHOW_TRANSLATED);
+            sendResponse({
+                showTranslated: SHOW_TRANSLATED,
+                orientation: TEXT_ORIENTATION,
+            });
+            break;
+        }
+        case 'set-selected-options': {
+            console.log('setting selected options', msg.options);
+            SELECTED_OPTIONS = msg.options;
+            browser.storage.local.set({selectedOptions: SELECTED_OPTIONS});
+            BroadcastMessage({
+                type: 'set-selected-options',
+                options: SELECTED_OPTIONS
+            })
+            break;
+        }
+
 
         default:
             break;

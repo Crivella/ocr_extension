@@ -1,9 +1,44 @@
+:root {
+    --theme-dark-body-bg-color: rgb(43, 43, 43);
+    --theme-dark-color: rgb(212, 212, 212);
+    --theme-dark-text-bg-color: rgba(36, 35, 35, 0.8);
+    
+    --theme-light-body-bg-color: #f0f0f0;
+    --theme-light-color: rgb(0, 0, 0);
+    --theme-light-text-bg-color: rgba(255, 255, 255, 0.8);
+    
+    --theme-body-bg-color: var(--theme-dark-body-bg-color);
+    --theme-color: var(--theme-dark-color);
+    --theme-text-bg-color: var(--theme-dark-text-bg-color);
+
+    --slider-size: 30px;
+    --slider-offset: calc(var(--slider-size) / 30 * 2);
+    --slider-inner-size: calc(var(--slider-size)/2 - var(--slider-offset));
+}
+
+body {
+    /* border: 1px solid var(--theme-dark-border-color); */
+    background-color: var(--theme-body-bg-color);
+    color: var(--theme-color);
+}
+
+label {
+    color: var(--theme-color);
+    background-color: var(--theme-text-bg-color);
+}
+
 .field {
     display: flex;
     /* flex-direction: column; */
     justify-content: space-between;
     margin-bottom: 4px;
 }
+
+.field > * {
+    color: var(--theme-color);
+    background-color: var(--theme-text-bg-color);
+}
+
 
 .success {
     background-color: rgb(95, 138, 95);
@@ -18,3 +53,149 @@
     margin-top: 5px;
     margin-bottom: 5px;
 }
+
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: var(--slider-size);
+    height: calc(var(--slider-size)/2 + var(--slider-offset));
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #dadada;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+  
+.slider:before {
+    position: absolute;
+    content: "";
+    height: var(--slider-inner-size);
+    width: var(--slider-inner-size);
+    left: var(--slider-offset);
+    bottom: var(--slider-offset);
+    background-color: #949494;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(var(--slider-inner-size));
+    -ms-transform: translateX(var(--slider-inner-size));
+    transform: translateX(var(--slider-inner-size));
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: var(--slider-inner-size);
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.option-field {
+    display: flex;
+    /* flex-direction: column; */
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.option-field > * {
+    color: var(--theme-color);
+    background-color: var(--theme-text-bg-color);
+}
+
+.collapsable {
+    background-color: var(--theme-text-bg-color);
+    color: var(--theme-color);
+    cursor: pointer;
+    /* padding: 18px; */
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    margin-bottom: 4px;
+    /* width: 100%; */
+}
+
+.collapsable-title:hover {
+    -webkit-filter: brightness(70%);
+    filter: brightness(70%);
+    /* background-color: var(--theme-dark-body-bg-color); */
+}
+
+.collapsable-content {
+    padding: 0 18px;
+    max-height: 0;
+    overflow: hidden;
+    /* transition: max-height 0.2s ease-out; */
+}
+
+.collapsable-content.open {
+    max-height: 700px;
+    overflow: visible;
+}
+
+.collapsable-content > * {
+    margin-bottom: 4px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted var(--theme-color);
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 420px;
+    background-color: var(--theme-text-bg-color);
+    color: var(--theme-color);
+    text-align: center;
+    text-wrap: pretty;
+
+    border-radius: 6px;
+    border-color: rgb(102, 166, 145);
+    border-style: solid;
+    border-width: 1px;
+
+    /* display: block; */
+    /* overflow: auto; */
+    /* max-height: 40px; */
+
+    padding: 5px 0;
+    margin: 3px;
+    position: absolute;
+    z-index: 1;
+    top: 30%;
+    left: 50%;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+  }

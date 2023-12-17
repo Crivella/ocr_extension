@@ -23,12 +23,10 @@ import md5 from 'md5';
 
 import { getOcr, setEndpoint, textTranslation } from './utils/API';
 import { base64FromAny } from './utils/blob';
-import { createContextMenu } from './utils/contextmenu';
+import { createContextMenu, destroyContextMenu, destroyDialog } from './utils/contextmenu';
 import { getSizes } from './utils/image';
 import { drawBox } from './utils/textbox';
 import { unwrapImage, wrapImage } from './utils/wrapper';
-
-var OCR = false;
 
 /*
 This is the main content script that is injected into the page
@@ -41,6 +39,16 @@ Function used to avoid multiple injection (cleaner than using an if?)
     }
     window.hasRun5124677111 = true;
 
+    var OCR = false;
+    var OPTIONS = {};
+    var showTranslated = true;
+    var orientation = 'horizontal-tb';
+
+    browser.storage.local.get().then((res) => {
+        showTranslated = res.showTranslated === undefined ? true : res.showTranslated;
+        orientation = res.textOrientation || 'horizontal-tb';
+        OPTIONS = res.selectedOptions || {};
+    })
     const images = [];
 
     /*
@@ -63,8 +71,9 @@ Function used to avoid multiple injection (cleaner than using an if?)
         ocr.result.forEach(({ocr, tsl, box}) => {
             // console.log(ocr, tsl, box)
             const [nw, nh] = getSizes(img);
+            const toWrite = showTranslated ? tsl : ocr;
             const textdiv = drawBox({
-                tsl, box, max_width: nw, max_height: nh
+                toWrite, box, max_width: nw, max_height: nh
             });
             textdiv.originalText = ocr;
             textdiv.translatedText = tsl;
@@ -107,7 +116,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         var ocr;
         img.classList.add('ocr-loading');
         try {
-            ocr = await getOcr(md5Hash, base64data);
+            ocr = await getOcr(md5Hash, base64data, OPTIONS);
         } catch (err) {
             console.log(err);
             img.classList.add('ocr-error');
@@ -228,7 +237,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         console.log('disabling OCR');
         document.removeEventListener('DOMNodeInserted', handleNodeInserted);
         document.removeEventListener('DOMNodeRemoved', handleNodeRemoved);
-
+        
         console.log(images);
         var i = images.length;
         while (i--) {
@@ -241,6 +250,9 @@ Function used to avoid multiple injection (cleaner than using an if?)
             unwrapImage(ptr.img);
             images.splice(i, 1);
         }
+        
+        destroyDialog();
+        destroyContextMenu();
     }
 
     /*
@@ -270,6 +282,32 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 const element = browser.menus.getTargetElement(msg.targetElementId);
                 console.log('translate-selection... element', element, msg.text, res.text);
                 element.innerText = element.innerText.replace(msg.text, res.text);
+                break;
+            case 'show-original-text':
+                console.log('show-original', msg);
+                showTranslated = false;
+                orientation = msg.orientation;
+                document.documentElement.style.setProperty('--ocr-text-writing-mode', orientation || 'horizontal-tb');
+                images.forEach((ptr) => {
+                    ptr.boxes.forEach((box) => {
+                        box.innerText = box.originalText;
+                    })
+                })
+                break;
+            case 'show-translated-text':
+                console.log('show-translated');
+                showTranslated = true;
+                orientation = msg.orientation;
+                document.documentElement.style.setProperty('--ocr-text-writing-mode', orientation || 'horizontal-tb');
+                images.forEach((ptr) => {
+                    ptr.boxes.forEach((box) => {
+                        box.innerText = box.translatedText;
+                    })
+                })
+                break
+            case 'set-selected-options':
+                console.log('set-selected-options', msg);
+                OPTIONS = msg.options;
                 break;
             default:
                 console.log('unknown message', msg);

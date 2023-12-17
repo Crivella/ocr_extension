@@ -47,12 +47,25 @@ export async function handshake({ endpoint, signal}) {
 }
 
 /*
+Generic function to send a GET request to the server.
+Used by React components in in the popup script.
+*/
+export async function get(endpoint, target, params, signal) {
+    console.log(`GET ${endpoint}/${target}/`);
+    const res = await axios.get(`${endpoint}/${target}/`, {
+        params: params,
+    }, signal);
+
+    return res.data;
+}
+
+/*
 Generic function to send a POST request to the server.
 Used by React components in in the popup script.
 */
-export async function post(target, data) {
-    console.log(`POST ${ENDPOINT}/${target}/`);
-    const res = await axios.post(`${ENDPOINT}/${target}/`, data);
+export async function post(endpoint, target, data) {
+    console.log(`POST ${endpoint}/${target}/`);
+    const res = await axios.post(`${endpoint}/${target}/`, data);
 
     return res;
 }
@@ -63,10 +76,11 @@ export async function post(target, data) {
 Attempt to get an already computed OCR_TLS result from the server.
 Will only send the md5 hash of the image to limit network usage.
 */
-async function getOcrLazy(md5Hash) {
+async function getOcrLazy(md5Hash, options) {
     console.log('GET OCR - Lazy');
     const res = await axios.post(`${ENDPOINT}/run_ocrtsl/`, {
         md5: md5Hash,
+        options: options,
     })
 
     return res.data;
@@ -75,11 +89,12 @@ async function getOcrLazy(md5Hash) {
 /*
 Request the OCR_TLS result from the server by sending the md5 and base64 of the content.
 */
-async function getOcrWork(md5Hash, base64data) {
+async function getOcrWork(md5Hash, base64data, options) {
     console.log('GET OCR - Work');
     const res = await axios.post(`${ENDPOINT}/run_ocrtsl/`, {
         md5: md5Hash,
         contents: base64data,
+        options: options,
     })
 
     return res.data;
@@ -89,14 +104,14 @@ async function getOcrWork(md5Hash, base64data) {
 Wrapper that will first try to get the OCR_TLS result lazily.
 If that fails, it will try to get the OCR_TLS result by sending the image.
 */
-export async function getOcr(md5Hash, base64data) {
+export async function getOcr(md5Hash, base64data, options) {
     console.log('GET OCR');
     var res;
     try {
-        res =  await getOcrLazy(md5Hash);
+        res =  await getOcrLazy(md5Hash, options);
     } catch (err) {
         // console.log(err);
-        res = await getOcrWork(md5Hash, base64data);
+        res = await getOcrWork(md5Hash, base64data, options);
     }
     return res;
 }
@@ -121,6 +136,19 @@ export async function textTranslation(text) {
     const res = await axios.post(`${ENDPOINT}/run_tsl/`, {
         text: text,
         })
+
+    return res.data;
+}
+
+/*
+Set manual translation for a given textbox.
+*/
+export async function setManualTranslation(text, translation) {
+    console.log('SET MANUAL TRANSLATION');
+    const res = await axios.post(`${ENDPOINT}/set_manual_translation/`, {
+        text: text,
+        translation: translation,
+    })
 
     return res.data;
 }

@@ -11,12 +11,21 @@ Field for the list of available source languages.
 */
 function LanguageSrcSelect({ success = null }) {
     const { langChoices, langSrc, setLangSrc, langChoicesHR } = useContext(GlobalContext);
+    const [names, setNames] = useState([]);
+
+    useEffect(() => {
+        if (langChoicesHR.length === 0) {
+            setNames(langChoices)
+        } else {
+            setNames(langChoicesHR.map((e) => e.length > MaxLangField ? e.slice(0, MaxLangField-3) + '...' : e))
+        }
+    }, [langChoicesHR])
 
     return <SelectField
         label="Source Language"
         name="lang-src"
         options={langChoices}
-        option_names={langChoicesHR.map((e) => e.length > MaxLangField ? e.slice(0, MaxLangField-3) + '...' : e)}
+        option_names={names}
         value={langSrc}
         setValue={setLangSrc}
         success={success} />
@@ -27,12 +36,21 @@ Field for the list of available destination languages.
 */
 function LanguageDstSelect({ success = null }) {
     const { langChoices, langDst, setLangDst, langChoicesHR } = useContext(GlobalContext);
+    const [names, setNames] = useState([]);
+
+    useEffect(() => {
+        if (langChoicesHR.length === 0) {
+            setNames(langChoices)
+        } else {
+            setNames(langChoicesHR.map((e) => e.length > MaxLangField ? e.slice(0, MaxLangField-3) + '...' : e))
+        }
+    }, [langChoicesHR])
     
     return <SelectField
         label="Destination Language"
         name="lang-dst"
         options={langChoices}
-        option_names={langChoicesHR.map((e) => e.length > MaxLangField ? e.slice(0, MaxLangField-3) + '...' : e)}
+        option_names={names}
         value={langDst}
         setValue={setLangDst}
         success={success} />

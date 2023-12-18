@@ -19,7 +19,7 @@ function LanguageSrcSelect({ success = null }) {
         } else {
             setNames(langChoicesHR.map((e) => e.length > MaxLangField ? e.slice(0, MaxLangField-3) + '...' : e))
         }
-    }, [langChoicesHR])
+    }, [langChoicesHR, langChoices])
 
     return <SelectField
         label="Source Language"
@@ -44,7 +44,7 @@ function LanguageDstSelect({ success = null }) {
         } else {
             setNames(langChoicesHR.map((e) => e.length > MaxLangField ? e.slice(0, MaxLangField-3) + '...' : e))
         }
-    }, [langChoicesHR])
+    }, [langChoicesHR, langChoices])
     
     return <SelectField
         label="Destination Language"

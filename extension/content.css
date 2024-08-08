@@ -38,6 +38,7 @@
 }
 
 .ocr-wrapped ~ .patch-text {
+    z-index: 50000;
     position: absolute;
     visibility: visible;
     background-color: var(--ocr-text-bg-color);

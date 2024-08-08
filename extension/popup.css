@@ -170,7 +170,7 @@ input:checked + .slider:before {
 
 .tooltip .tooltiptext {
     visibility: hidden;
-    width: 420px;
+    width: calc(80vw);
     background-color: var(--theme-text-bg-color);
     color: var(--theme-color);
     text-align: center;
@@ -181,9 +181,9 @@ input:checked + .slider:before {
     border-style: solid;
     border-width: 1px;
 
-    /* display: block; */
-    /* overflow: auto; */
-    /* max-height: 40px; */
+    display: block;
+    overflow: auto;
+    max-height: 100px;
 
     padding: 5px 0;
     margin: 3px;
@@ -199,3 +199,10 @@ input:checked + .slider:before {
     visibility: visible;
     opacity: 1;
   }
+
+a:link{
+    color: rgb(70, 70, 255);
+}
+a:visited{
+    color: rgb(70, 70, 255);
+}

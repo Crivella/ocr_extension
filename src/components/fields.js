@@ -158,3 +158,40 @@ export function SelectField({label, name, options, option_names, value, setValue
         </div>
     )
 }
+
+export function PluginCheckField({name, description, version, homepage, warning, installed}) {
+    const { setPlugins } = useContext(GlobalContext);
+    const onChange = (e) => {
+        setPlugins((prev) => {
+            let newPlugins = {...prev};
+            newPlugins[name].installed = e.target.checked;
+            return newPlugins;
+        })
+    }
+
+    return (
+        <div className="field">
+            <div>
+                <div className="tooltip">
+                    {'❓'}
+                    <div className="tooltiptext" style={{textAlign: 'left'}}>
+                        {`${name}==${version}`}
+                        <br />
+                        <br />
+                        <a href={homepage} target="_blank" rel="noreferrer noopener">HOMEPAGE</a>
+                        <br />
+                        <br />
+                        {description}
+                        <br />
+                        {warning ? <br /> : <></>}
+                        {warning ? <span style={{color: 'red'}}>IMPORTANT: </span> : <></>}
+                        {warning}
+                    </div>
+                    {/* <span className="tooltiptext">{description}</span> */}
+                </div>
+            <label htmlFor={name}>{name}</label>
+            </div>
+            <input type="checkbox" id={name} name={name} checked={installed} onChange={onChange} />
+        </div>
+    )
+}

@@ -13,12 +13,15 @@ export function SubmitUnit({children, target, data, endpoint}) {
     const queryClient = useQueryClient();
 
     const [success, setSuccess] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
+    const [errorStatus, setErrorStatus] = useState(null);
 
     const updateMutation = useMutation({
         mutationFn: (data) => post(endpoint, target, data), 
-        onError: () => {
-            console.log('error');
+        onError: (err, data, context) => {
             setSuccess(false);
+            setErrorStatus(err.response.status);
+            setErrorMsg(err.response.data.error);
         },
         onSuccess: () => {
             console.log('success');
@@ -62,6 +65,16 @@ export function SubmitUnit({children, target, data, endpoint}) {
                 <div className="loading">Loading...</div> 
                 : 
                 <button onClick={onSubmit}>Submit</button>
+            }
+            { success === true ? <div className="success">Success!</div> : null }
+            {
+                success === false ? 
+                <div>
+                    <span className="error2">{`ERROR (${errorStatus}): `}</span>
+                    <span>{errorMsg}</span>
+                </div>
+                :
+                null
             }
         </div>
     )

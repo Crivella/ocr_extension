@@ -47,6 +47,10 @@ label {
 .error {
     background-color: rgb(138, 95, 95);
 }
+.error2 {
+    background-color: rgb(246, 2, 2);
+    color: white;
+}
 
 .subunit {
     border: 1px solid red;

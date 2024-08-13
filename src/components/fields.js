@@ -177,12 +177,9 @@ export function PluginCheckField({name, description, version, homepage, warning,
                     <div className="tooltiptext" style={{textAlign: 'left'}}>
                         {`${name}==${version}`}
                         <br />
-                        <br />
                         <a href={homepage} target="_blank" rel="noreferrer noopener">HOMEPAGE</a>
                         <br />
-                        <br />
                         {description}
-                        <br />
                         {warning ? <br /> : <></>}
                         {warning ? <span style={{color: 'red'}}>IMPORTANT: </span> : <></>}
                         {warning}

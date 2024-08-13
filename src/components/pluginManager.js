@@ -37,7 +37,7 @@ export function PluginManager() {
             })}
             </SubmitUnit>
             <span style={{color: 'red'}}>NOTE: </span>
-            <span>Installation of new plugins can take a few seconds to complete.</span>
+            <span>Installation of new plugins could take a few minutes to complete.</span>
             <br />
         </CollapsableForm>
     )

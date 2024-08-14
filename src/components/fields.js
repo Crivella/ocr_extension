@@ -175,14 +175,26 @@ export function PluginCheckField({name, description, version, homepage, warning,
                 <div className="tooltip">
                     {'❓'}
                     <div className="tooltiptext" style={{textAlign: 'left'}}>
-                        {`${name}==${version}`}
-                        <br />
-                        <a href={homepage} target="_blank" rel="noreferrer noopener">HOMEPAGE</a>
-                        <br />
-                        {description}
-                        {warning ? <br /> : <></>}
-                        {warning ? <span style={{color: 'red'}}>IMPORTANT: </span> : <></>}
-                        {warning}
+                        <span className="tooltip-block">
+                            <a href={homepage} className="tooltip-link" target="_blank" rel="noreferrer noopener">
+                                HOMEPAGE
+                            </a>
+                        </span>
+                        <span className="tooltip-block">
+                            {`Version: ${version}`}
+                        </span>
+                        <span className="tooltip-block">
+                            {description}
+                        </span>
+                        {
+                            warning ? 
+                            <span className="tooltip-block">
+                                <span style={{color: 'red'}}>IMPORTANT: </span>
+                                {warning}
+                            </span>
+                            :
+                            <></>
+                        }
                     </div>
                     {/* <span className="tooltiptext">{description}</span> */}
                 </div>

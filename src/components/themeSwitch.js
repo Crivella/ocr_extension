@@ -13,9 +13,10 @@ export function ThemeSwitch() {
     }, [])
 
     useEffect(() => {
-        document.documentElement.style.setProperty('--theme-body-bg-color', `var(--theme-${theme}-body-bg-color)`);
+        ['link', 'body-bg', 'text-bg'].forEach((prop) => {
+            document.documentElement.style.setProperty(`--theme-${prop}-color`, `var(--theme-${theme}-${prop}-color)`);
+        })
         document.documentElement.style.setProperty('--theme-color', `var(--theme-${theme}-color)`);
-        document.documentElement.style.setProperty('--theme-text-bg-color', `var(--theme-${theme}-text-bg-color)`);
     }, [theme])
 
     const onClick = (e) => {

@@ -51,6 +51,12 @@ export function SubmitUnit({children, target, data, endpoint}) {
         success: success,
     }
 
+    const clickHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSuccess(null);
+    }
+
     return (
         <div className="subunit">
             {children.map((e) => {
@@ -66,12 +72,14 @@ export function SubmitUnit({children, target, data, endpoint}) {
                 : 
                 <button onClick={onSubmit}>Submit</button>
             }
-            { success === true ? <div className="success">Success!</div> : null }
             {
                 success === false ? 
-                <div>
-                    <span className="error2">{`ERROR (${errorStatus}): `}</span>
+                <div className="submit-error">
+                    <span>{`ERROR (${errorStatus}): `}</span>
                     <span>{errorMsg}</span>
+                    <div style={{float: "right"}}>
+                        <a href="#" className="tooltip-link" onClick={clickHandler}>X</a>
+                    </div>
                 </div>
                 :
                 null

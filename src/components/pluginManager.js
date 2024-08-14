@@ -39,6 +39,8 @@ export function PluginManager() {
             <span style={{color: 'red'}}>NOTE: </span>
             <span>Installation of new plugins could take a few minutes to complete.</span>
             <br />
+            <span>Server will become unresponsive in the meanwhile.</span>
+            <br />
         </CollapsableForm>
     )
 }

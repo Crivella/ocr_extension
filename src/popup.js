@@ -112,10 +112,14 @@ function PopUp() {
 
     useEffect(() => {
         console.log('QUERY Plugins', queryPlugins);
-        if (queryPlugins.data) {
+        if (queryPlugins.isSuccess) {
             console.log('QUERY Plugins - success');
-            console.log(queryPlugins.data);
-            setPlugins(queryPlugins.data);
+            if (queryPlugins.data) {
+                console.log(queryPlugins.data);
+                setPlugins(queryPlugins.data);
+            }
+        } else {
+            setPlugins(undefined);
         }
     }, [queryPlugins.data])
  

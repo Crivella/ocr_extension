@@ -39,7 +39,11 @@ export function PluginManager() {
             <span style={{color: 'red'}}>NOTE: </span>
             <span>Installation of new plugins could take a few minutes to complete.</span>
             <br />
-            <span>Server will become unresponsive in the meanwhile.</span>
+            <span>Server could become unresponsive in the meanwhile.</span>
+            <br />
+            <span>A 504 error does not mean the install failed, just that it is taking</span>
+            <br />
+            <span>long enough for the connection between server and plugin timed out.</span>
             <br />
         </CollapsableForm>
     )

@@ -157,13 +157,6 @@ Function used to avoid multiple injection (cleaner than using an if?)
             } else {
                 error = 'Unknown error';
             }
-            // img.classList.add('ocr-error');
-            // img.addEventListener('click', (e) => {
-            //     e.preventDefault();
-            //     e.stopPropagation();
-            //     img.classList.remove('ocr-error');
-            // })
-            // return;
         } finally {
             img.classList.remove('ocr-loading');
         }

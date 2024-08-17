@@ -7,10 +7,11 @@ React component to draw a field for the endpoint.
 The field will be highlighted in green or red depending on the success of the handshake.
 */
 export function EndpointField() {
-    const { endpoint, setEndpoint, successEndpoint: success } = useContext(GlobalContext);
+    const { endpoint, setEndpoint, successEndpoint: success, serverVersion } = useContext(GlobalContext);
 
     const [endpointInput, setEndpointInput] = useState(endpoint);
     const [myClass, setClass] = useState(''); // ['success', 'error', '']
+    const [warning, setWarning] = useState('');
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -27,6 +28,13 @@ export function EndpointField() {
             setClass('');
         } else if (success) {
             setClass('success');
+            // Check if server version is lower than 0.6.0
+            if (serverVersion !== undefined) {
+                const [major, minor, patch] = serverVersion
+                if (major === 0 && minor < 6) {
+                    setWarning('Server version is lower than 0.6.0. Some features may not work as expected.');
+                }
+            }
         } else {
             setClass('error');
         }
@@ -34,20 +42,23 @@ export function EndpointField() {
 
     
     return (
-        <div className="field">
-            <label htmlFor="endpoint">Endpoint</label>
-            <input 
-                type="text" id="endpoint" name="endpoint" 
-                className={myClass}
-                value={endpointInput} 
-                onChange={(e) => setEndpointInput(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                        onSubmit(e);
-                    }}
-                } 
-                />
-            <input type="submit" value="Apply" onClick={onSubmit} />
+        <div>
+            <div className="field">
+                <label htmlFor="endpoint">Endpoint</label>
+                <input 
+                    type="text" id="endpoint" name="endpoint" 
+                    className={myClass}
+                    value={endpointInput} 
+                    onChange={(e) => setEndpointInput(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            onSubmit(e);
+                        }}
+                    } 
+                    />
+                <input type="submit" value="Apply" onClick={onSubmit} />
+            </div>
+            {warning ? <div className="error">{warning}</div> : <></>}
         </div>
     )
 }

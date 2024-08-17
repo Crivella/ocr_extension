@@ -45,6 +45,7 @@ function PopUp() {
         setTslModels, setTslModel,
         setLangChoices, setLangChoicesHR, setLangSrc, setLangDst,
         setAllowedOptions,
+        setServerVersion,
         setPlugins,
     } = useContext(GlobalContext);
 
@@ -84,6 +85,7 @@ function PopUp() {
             setTslModel(query.data.tsl_selected || '');
             setLangSrc(query.data.lang_src || '');
             setLangDst(query.data.lang_dst || '');
+            setServerVersion(query.data.version || []);
 
             browser.runtime.sendMessage({
                 type: 'set-endpoint',
@@ -147,6 +149,7 @@ export function Hub() {
     const [langChoices, setLangChoices] = useState([]);
     const [langChoicesHR, setLangChoicesHR] = useState([]);
     const [endpoint, setEndpoint] = useState('');
+    const [serverVersion, setServerVersion] = useState([]);
     const [boxModel, setBoxModel] = useState('');
     const [ocrModel, setOcrModel] = useState('');
     const [tslModel, setTslModel] = useState('');
@@ -274,6 +277,7 @@ export function Hub() {
         allowedOptions: allowedOptions, setAllowedOptions: setAllowedOptions,
         selectedOptions: selectedOptions, setSelectedOptions: setSelectedOptions,
         plugins: plugins, setPlugins: setPlugins,
+        serverVersion: serverVersion, setServerVersion: setServerVersion,
     }
 
     return (

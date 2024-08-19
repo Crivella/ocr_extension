@@ -17,6 +17,14 @@ The purpose of the extension is also to control the state of the backend server 
 - Text OCR model
 - Translation OCR model
 
+THe extension also allows to:
+
+- install/uninstall plugins for the server (starting from ext `>=v0.3.0` and server `>=v0.6.0`)
+- Manage advanced options provided by the plugins that can alter the behavior of the box/ocr/translation pipeline
+
+NOTE: the collapsible menu related to the plugins is only visible with server version `>=v0.6.0`.
+The collapsible menu related to the advanced options is only visible with models loaded and when some plugins are providing advanced options information.
+
 ## Installing the extension
 
 ### Install from from Mozilla add-ons
@@ -36,13 +44,35 @@ The extension is available on the [official Mozilla repository](https://addons.m
 
 ## Usage
 
+- Start the backend server
+  ![server](images/server.png)
+- Open the popup menu of the extension by clicking on the extension icon in the browser bar.
+![popup](images/popup.png)
+- Write the correct endpoint and click apply next to it.
+  If you are using the server defaults this should be `http://127.0.0.1:4000` and already filled in.\
+  If the server is found and responds correctly the field will turn green.
+- Select both the source and destination languages and click submit in the respective form (delimited by the red borders).\
+  If everything is fine the fields will turn green, otherwise a message describing the error will appear.
+  ![popup_languages](images/popup_languages.png)
+- Since server `>=v0.6.0` no models will/should be found by default.\
+  Install the plugins you want to use by expanding the collapsible menu and selecting the plugins you wish to install (wait for the operation to finish before proceeding).\
+  Selected plugins will be installed/updated while the others will be uninstalled if previously present.
+  ![popup_plugins](images/popup_plugins.png)
+- Select the models to be loaded (not necessarily all of them as text translation from the context menu requires only the translation model) and click submit in the respective form.\
+  If everything is fine the selected fields will turn green, otherwise a message describing the error will appear.
+  ![popup_models](images/popup_models.png)
+- Activate the extension in the current tab by clicking on the page action icon.
+  ![page-action](images/page-action.png)
+
+## Features
+
 The extension will provide
 
-- A pop-up menu in the extension bar ![popup](images/popup.png)
-- A *page action* to activate the extension in the current tab ![page-action](images/page-action.png).
+- A pop-up menu in the extension bar 
+- A *page action* to activate the extension in the current tab.
   - Activating the page action will signal the extension to grab all images on the page and add listeners to detect new images.
   - Deactivating the page action will (should) undo everything the extension did to modify the page, returning it to the original state.
-- A `Translate text` option in the context menu of selected text to ask the server to translate the selection. The extension will then replace the selected text with the translated one (sperimental, still has trouble with new-lines).
+- A `Translate text` option in the context menu of selected text to ask the server to translate the selection. The extension will then replace the selected text with the translated one (experimental, still has trouble with new-lines).
 
 By default the extension will try to query a local host backend server on port 4000.
 

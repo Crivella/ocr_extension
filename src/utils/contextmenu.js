@@ -48,7 +48,6 @@ export function createContextMenu(e) {
     menu.style.left = `${e.clientX}px`;
     menu.style.top = `${e.clientY}px`;
     menu.style.position = "fixed";
-    menu.style.zIndex = "9999";
 
     document.body.appendChild(menu);
     document.addEventListener('click', handleMenuClick)

@@ -89,6 +89,33 @@ Function used to avoid multiple injection (cleaner than using an if?)
         })
     }
 
+
+    /*
+    Apply the OCR result to the image in case of an error
+     - Wrap the image in a div
+     - Draw one text box on top of the image (in the middle)
+    */
+    const applyError = (img, wrapper, error) => {
+        console.log('applying error');
+
+        const ptr = {
+            img: img,
+            wrapper: wrapper,
+            boxes: []
+        };
+        images.push(ptr);
+
+        const [nw, nh] = getSizes(img);
+        const box = [nw/4, nh/4, 3*nw/4, 3*nh/4];
+        const textdiv = drawBox({
+            toWrite: error, box: box, max_width: nw, max_height: nh
+        });
+        textdiv.style.fontSize = '24px';
+        textdiv.style.lineHeight = '26px';
+        wrapper.appendChild(textdiv);
+        ptr.boxes.push(textdiv);
+    }
+
     /*
     Pipeline for processing an image:
      - Get a blob from the image
@@ -112,6 +139,8 @@ Function used to avoid multiple injection (cleaner than using an if?)
 
         const md5Hash = md5(base64data);
 
+        let error = undefined;
+
         // Change image CSS while loading OCR and if error
         var ocr;
         img.classList.add('ocr-loading');
@@ -119,20 +148,27 @@ Function used to avoid multiple injection (cleaner than using an if?)
             ocr = await getOcr(md5Hash, base64data, OPTIONS);
         } catch (err) {
             console.log(err);
-            img.classList.add('ocr-error');
-            img.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                img.classList.remove('ocr-error');
-            })
-            return;
+            if (err.code === "ERR_NETWORK") {
+                error = 'Network error';
+            } else if (err.code === "ERR_BAD_RESPONSE") {
+                let code = err.response.status;
+                let msg = err.response.data.error;
+                error = `Error [${code}]: ${msg}`;
+            } else {
+                error = 'Unknown error';
+            }
         } finally {
             img.classList.remove('ocr-loading');
         }
 
         const [newImg, wrapper] = wrapImage(img);
 
-        applyOcr(newImg, wrapper, ocr);
+        if (error) {
+            applyError(newImg, wrapper, error);
+            newImg.classList.add('ocr-error');
+        } else {
+            applyOcr(newImg, wrapper, ocr);
+        }
         newImg.addEventListener('load', onImageReload);
     }
 

@@ -1,10 +1,12 @@
 :root {
     --theme-dark-body-bg-color: rgb(43, 43, 43);
     --theme-dark-color: rgb(212, 212, 212);
+    --theme-dark-link-color: rgb(255, 70, 255);
     --theme-dark-text-bg-color: rgba(36, 35, 35, 0.8);
     
     --theme-light-body-bg-color: #f0f0f0;
     --theme-light-color: rgb(0, 0, 0);
+    --theme-light-link-color: rgb(0, 0, 255);
     --theme-light-text-bg-color: rgba(255, 255, 255, 0.8);
     
     --theme-body-bg-color: var(--theme-dark-body-bg-color);
@@ -46,6 +48,18 @@ label {
 
 .error {
     background-color: rgb(138, 95, 95);
+}
+.submit-error {
+    /* background-color: rgb(138, 95, 95); */
+    /* color: var(--theme-color); */
+
+    border-radius: 6px;
+    border-color: rgb(255, 0, 0);
+    border-style: solid;
+    border-width: 2px;
+
+    margin: 5px;
+    padding: 5px;
 }
 
 .subunit {
@@ -170,7 +184,7 @@ input:checked + .slider:before {
 
 .tooltip .tooltiptext {
     visibility: hidden;
-    width: 420px;
+    width: calc(80vw);
     background-color: var(--theme-text-bg-color);
     color: var(--theme-color);
     text-align: center;
@@ -181,9 +195,9 @@ input:checked + .slider:before {
     border-style: solid;
     border-width: 1px;
 
-    /* display: block; */
-    /* overflow: auto; */
-    /* max-height: 40px; */
+    display: block;
+    overflow: auto;
+    max-height: 100px;
 
     padding: 5px 0;
     margin: 3px;
@@ -198,4 +212,45 @@ input:checked + .slider:before {
 .tooltip:hover .tooltiptext {
     visibility: visible;
     opacity: 1;
-  }
+}
+
+.tooltip-block {
+    display: block;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.tooltip-link {
+    color: var(--theme-link-color);
+    text-decoration: none;
+    padding: 2px;
+    border-radius: 2px;
+    border-color: var(--theme-link-color);
+    border-style: solid;
+    border-width: 1px;
+}
+
+.close-box {
+    float: right;
+    /* position: absolute;
+    top: 0;
+    right: 0; */
+    color: var(--theme-link-color);
+    border-color: var(--theme-link-color);
+
+    padding: 2px;
+    margin: 2px;
+
+    border-radius: 2px;
+    border-style: solid;
+    border-width: 1px;
+
+    cursor: pointer;
+
+    /* font-size: 20px;
+    line-height: 20px;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    border-radius: 50%; */
+}

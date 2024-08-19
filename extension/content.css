@@ -38,6 +38,7 @@
 }
 
 .ocr-wrapped ~ .patch-text {
+    z-index: 50000;
     position: absolute;
     visibility: visible;
     background-color: var(--ocr-text-bg-color);
@@ -72,7 +73,6 @@
 
 .ocr-error {
     border: 2px solid #ff0000;
-    filter: blur(1px);
 }
 
 .ocr-cmenu {
@@ -82,7 +82,7 @@
     /* border: 1px solid #ccc;
     border-radius: 2px; */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    z-index: 999;
+    z-index: 50001;
     padding: 5px;
 }
 
@@ -116,7 +116,7 @@
     border: 1px solid #ccc;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    z-index: 999;
+    z-index: 50001;
     padding: 5px;
     font-size: 16px;
 }

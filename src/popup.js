@@ -24,6 +24,7 @@ import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-quer
 import { AdvancedOptions } from "./components/collapsableForm";
 import { GlobalContext } from "./components/context";
 import { EndpointField } from "./components/fields";
+import { PluginManager } from "./components/pluginManager";
 import { RenderOptionsForm } from "./components/renderOptions";
 import { LangUnit } from "./components/submitUnitLang";
 import { ModelUnit } from "./components/submitUnitModel";
@@ -44,6 +45,8 @@ function PopUp() {
         setTslModels, setTslModel,
         setLangChoices, setLangChoicesHR, setLangSrc, setLangDst,
         setAllowedOptions,
+        setServerVersion,
+        setPlugins,
     } = useContext(GlobalContext);
 
 
@@ -61,6 +64,14 @@ function PopUp() {
         staleTime: 1000 * 60 * 5
     });
 
+    const queryPlugins = useQuery({
+        queryKey: ['plugins', endpoint],
+        queryFn: ({ signal }) => get(endpoint, 'get_plugin_data',{}, signal),
+        enabled: endpoint !== '',
+        staleTime: 1000 * 60 * 5
+    });
+
+
     useEffect(() => {
         console.log('QUERY handshake', query);
         if (query.data) {
@@ -74,6 +85,7 @@ function PopUp() {
             setTslModel(query.data.tsl_selected || '');
             setLangSrc(query.data.lang_src || '');
             setLangDst(query.data.lang_dst || '');
+            setServerVersion(query.data.version || []);
 
             browser.runtime.sendMessage({
                 type: 'set-endpoint',
@@ -99,6 +111,19 @@ function PopUp() {
             setAllowedOptions(queryOptions.data.options);
         }
     }, [queryOptions.data])
+
+    useEffect(() => {
+        console.log('QUERY Plugins', queryPlugins);
+        if (queryPlugins.isSuccess) {
+            console.log('QUERY Plugins - success');
+            if (queryPlugins.data) {
+                console.log(queryPlugins.data);
+                setPlugins(queryPlugins.data);
+            }
+        } else {
+            setPlugins(undefined);
+        }
+    }, [queryPlugins.data])
  
     return (
         <>
@@ -106,6 +131,7 @@ function PopUp() {
             <EndpointField />
             <LangUnit />
             <ModelUnit />
+            <PluginManager />
             <RenderOptionsForm />
             <AdvancedOptions />
         </>
@@ -123,6 +149,7 @@ export function Hub() {
     const [langChoices, setLangChoices] = useState([]);
     const [langChoicesHR, setLangChoicesHR] = useState([]);
     const [endpoint, setEndpoint] = useState('');
+    const [serverVersion, setServerVersion] = useState([]);
     const [boxModel, setBoxModel] = useState('');
     const [ocrModel, setOcrModel] = useState('');
     const [tslModel, setTslModel] = useState('');
@@ -134,6 +161,7 @@ export function Hub() {
     const [orientation, setOrientation] = useState();
     const [allowedOptions, setAllowedOptions] = useState(undefined);
     const [selectedOptions, setSelectedOptions] = useState(undefined);
+    const [plugins, setPlugins] = useState({});
 
     useEffect(() => {
         console.log('useEffect - init');
@@ -248,6 +276,8 @@ export function Hub() {
         orientation: orientation, setOrientation: setOrientation,
         allowedOptions: allowedOptions, setAllowedOptions: setAllowedOptions,
         selectedOptions: selectedOptions, setSelectedOptions: setSelectedOptions,
+        plugins: plugins, setPlugins: setPlugins,
+        serverVersion: serverVersion, setServerVersion: setServerVersion,
     }
 
     return (

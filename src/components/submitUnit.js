@@ -13,12 +13,15 @@ export function SubmitUnit({children, target, data, endpoint}) {
     const queryClient = useQueryClient();
 
     const [success, setSuccess] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
+    const [errorStatus, setErrorStatus] = useState(null);
 
     const updateMutation = useMutation({
         mutationFn: (data) => post(endpoint, target, data), 
-        onError: () => {
-            console.log('error');
+        onError: (err, data, context) => {
             setSuccess(false);
+            setErrorStatus(err.response.status);
+            setErrorMsg(err.response.data.error);
         },
         onSuccess: () => {
             console.log('success');
@@ -48,6 +51,12 @@ export function SubmitUnit({children, target, data, endpoint}) {
         success: success,
     }
 
+    const clickHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSuccess(null);
+    }
+
     return (
         <div className="subunit">
             {children.map((e) => {
@@ -62,6 +71,18 @@ export function SubmitUnit({children, target, data, endpoint}) {
                 <div className="loading">Loading...</div> 
                 : 
                 <button onClick={onSubmit}>Submit</button>
+            }
+            {
+                success === false ? 
+                <div className="submit-error">
+                    <span>{`ERROR (${errorStatus}): `}</span>
+                    <span>{errorMsg}</span>
+                    <div style={{float: "right"}}>
+                        <a href="#" className="tooltip-link" onClick={clickHandler}>X</a>
+                    </div>
+                </div>
+                :
+                null
             }
         </div>
     )

@@ -1,0 +1,35 @@
+<strong>What is this?</strong>
+A browser extension for running in-place translation of images in an active tab.
+
+<strong>How does this work?</strong>
+This is not a standalone tool!!!
+The extension, when activated on a tab, will grab all existing and new images and send them to a <a href="https://github.com/Crivella/ocr_translate">backend server</a>, that will perform the OCR and translation.
+The server will reply with a list of textboxes, that the extension will overlay on top of the image
+
+The idea behind this project, is to have a self-hosted instance of the <a href="https://github.com/Crivella/ocr_translate">backend server</a>, which, by using pre-downloaded or self-generated/fine-tuned models is capable of running without any internet connection.
+
+<strong>Why do you need to access your data on all the websites you visit?</strong>
+This permission is required to allow the extension to inject its content script on all pages.
+This is necessary to be able to grab all images and send them to the server for processing.
+
+<strong>Documentation links</strong>
+ <ul>
+  <li><a href="https://github.com/Crivella/ocr_extension?tab=readme-ov-file#usage">Addon usage documentation</a></li>
+  <li><a href="https://github.com/Crivella/ocr_translate?tab=readme-ov-file#ocr_translate"> Server readme</a></li>
+  <li><a href="https://crivella.github.io/ocr_translate/"> Server detailed documentation</a></li>
+</ul>
+
+<strong>Privacy policy</strong>
+<a href="https://addons.mozilla.org/en-US/firefox/addon/ocr_extension/privacy/">Privacy policy</a>
+This tool does not collect any data from the user.
+Depending on the plugin used , part of the box/ocr/tsl pipeline could be ran on outside services (This will be highlighted in the plugin description)
+
+<strong>TLDR</strong>
+<ul>
+  <li>Install the extension</li>
+  <li>Download and run the server</li>
+  <li>Open the extension popup menu and use the "Plugins" section to install plugins in the server. Different plugins will enable different type of models.</li>
+  <li>Select the source and destination language in the first form and hit submit</li>
+  <li>Select the BOX/OCR/TSL models and click submit (could take some time especially the first time if the server has to download them)</li>
+  <li>Use the page action (icon in the URL box) to activate the extension on a page</li>
+</ul> 

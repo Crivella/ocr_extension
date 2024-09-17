@@ -27,7 +27,7 @@ This is the background page. It is responsible for:
 */
 const TITLE_APPLY = "Enable OCR";
 const TITLE_REMOVE = "Disable OCR";
-const APPLICABLE_PROTOCOLS = ["http:", "https:"];
+const APPLICABLE_PROTOCOLS = ["http:", "https:", "file:"];
 
 const enabledIds = [];
 

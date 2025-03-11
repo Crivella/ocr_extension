@@ -23,13 +23,14 @@ import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-quer
 
 import { AdvancedOptions } from "./components/collapsableForm";
 import { GlobalContext } from "./components/context";
-import { EndpointField } from "./components/fields";
+import { EndpointField, LogLevelField } from "./components/fields";
 import { PluginManager } from "./components/pluginManager";
 import { RenderOptionsForm } from "./components/renderOptions";
 import { LangUnit } from "./components/submitUnitLang";
 import { ModelUnit } from "./components/submitUnitModel";
 import { ThemeSwitch } from "./components/themeSwitch";
 import { get, handshake } from "./utils/API";
+import { DEFAULT_LOG_LEVEL, setLogLevel as globalSetLogLevel } from "./utils/logging";
 
 const queryClient = new QueryClient();
 
@@ -134,6 +135,7 @@ function PopUp() {
             <PluginManager />
             <RenderOptionsForm />
             <AdvancedOptions />
+            <LogLevelField />
         </>
     )
 }
@@ -162,6 +164,7 @@ export function Hub() {
     const [allowedOptions, setAllowedOptions] = useState(undefined);
     const [selectedOptions, setSelectedOptions] = useState(undefined);
     const [plugins, setPlugins] = useState({});
+    const [logLevel, setLogLevel] = useState(undefined);
 
     useEffect(() => {
         console.log('useEffect - init');
@@ -192,7 +195,9 @@ export function Hub() {
         browser.storage.local.get('selectedOptions').then((response) => {
             setSelectedOptions(response.selectedOptions || {});
         })
-
+        browser.storage.local.get('logLevel').then((response) => {
+            setLogLevel(response.logLevel || DEFAULT_LOG_LEVEL);
+        })
     }, [])
 
     useEffect(() => {
@@ -255,6 +260,13 @@ export function Hub() {
         console.log(selectedOptions);
     }, [selectedOptions])
 
+    useEffect(() => {
+        if (logLevel !== undefined) {
+            globalSetLogLevel(logLevel);
+            browser.storage.local.set({logLevel: logLevel});
+        }
+    }, [logLevel])
+
     const newProps = {
         endpoint: endpoint, setEndpoint: setEndpoint,
         boxModel: boxModel, setBoxModel: setBoxModel,
@@ -278,6 +290,7 @@ export function Hub() {
         selectedOptions: selectedOptions, setSelectedOptions: setSelectedOptions,
         plugins: plugins, setPlugins: setPlugins,
         serverVersion: serverVersion, setServerVersion: setServerVersion,
+        logLevel: logLevel, setLogLevel: setLogLevel,
     }
 
     return (

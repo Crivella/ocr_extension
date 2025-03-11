@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
+import { LOG_LEVELS } from "../utils/logging";
 import { GlobalContext } from "./context";
 
 /*
@@ -212,6 +213,25 @@ export function PluginCheckField({name, description, version, homepage, warning,
             <label htmlFor={name}>{name}</label>
             </div>
             <input type="checkbox" id={name} name={name} checked={installed} onChange={onChange} />
+        </div>
+    )
+}
+
+export function LogLevelField() {
+    const { logLevel, setLogLevel } = useContext(GlobalContext);
+
+    const onChange = (e) => {
+        setLogLevel(e.target.value);
+    }
+
+    return (
+        <div className="field">
+            <label htmlFor="log-level">Log Level</label>
+            <select name="log-level" id="log-level" value={logLevel} onChange={onChange}>
+                {Object.keys(LOG_LEVELS).map((key) => (
+                    <option key={key} value={LOG_LEVELS[key]}>{key}</option>
+                ))}
+            </select>
         </div>
     )
 }

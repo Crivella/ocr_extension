@@ -20,7 +20,10 @@
     This file contains utility functions for logging.
 */
 
+
 var LOG_LEVEL = 30;
+
+export const DEFAULT_LOG_LEVEL = 30;
 
 export const LOG_LEVELS = {
     'DEBUG': 10,
@@ -32,6 +35,7 @@ export const LOG_LEVELS = {
 }
 
 export function setLogLevel(level) {
+    console.log('setLogLevel', LOG_LEVEL, level);
     LOG_LEVEL = level;
 }
 
@@ -40,6 +44,7 @@ export function getLogLevel() {
 }
 
 function log(level, ...args) {
+    console.log('log', level, getLogLevel());
     if (level >= LOG_LEVEL) {
         console.log(...args);
     }
@@ -47,27 +52,27 @@ function log(level, ...args) {
 
 export function debug(...args) {
     // Add a timestamp and LOG_LEVEL to the msg 
-    msg = `${new Date().toISOString()} [   DEBUG] ${msg}`;
+    var msg = `${new Date().toISOString()} [   DEBUG] ${msg}`;
     log(10, msg, ...args);
 }
 
 export function info(...args) {
-    msg = `${new Date().toISOString()} [    INFO] ${msg}`;
+    var msg = `${new Date().toISOString()} [    INFO] ${msg}`;
     log(20, msg, ...args);
 }
 
 export function warning(...args) {
-    msg = `${new Date().toISOString()} [ WARNING] ${msg}`;
+    var msg = `${new Date().toISOString()} [ WARNING] ${msg}`;
     log(30, msg, ...args);
 }
 
 export function error(...args) {
-    msg = `${new Date().toISOString()} [   ERROR] ${msg}`;
+    var msg = `${new Date().toISOString()} [   ERROR] ${msg}`;
     log(40, msg, ...args);
 }
 
 export function critical(...args) {
-    msg = `${new Date().toISOString()} [CRITICAL] ${msg}`;
+    var msg = `${new Date().toISOString()} [CRITICAL] ${msg}`;
     log(50, msg, ...args);
 }
 

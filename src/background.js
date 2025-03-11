@@ -25,6 +25,9 @@ This is the background page. It is responsible for:
     - handle global variables to preserve content script state on page reload
     - handle communication between the content and the popup
 */
+
+import { debug, DEFAULT_LOG_LEVEL, info, warning } from './utils/logging.js';
+
 const TITLE_APPLY = "Enable OCR";
 const TITLE_REMOVE = "Disable OCR";
 const APPLICABLE_PROTOCOLS = ["http:", "https:", "file:"];
@@ -54,6 +57,7 @@ browser.storage.local.get().then((res) => {
     G = res.G || 68;
     B = res.B || 68;
     SELECTED_OPTIONS = res.selectedOptions || {};
+    setLogLevel(res.logLevel || DEFAULT_LOG_LEVEL);
 })
 
 /*
@@ -62,7 +66,7 @@ Argument url must be a valid URL string.
 */
 function protocolIsApplicable(url) {
     const protocol = (new URL(url)).protocol;
-    console.log(protocol);
+    debug(protocol);
     return APPLICABLE_PROTOCOLS.includes(protocol);
   }
 
@@ -72,7 +76,7 @@ Inject the content in a tab
 function initializePageAction(tab) {
     // console.log('initializePageAction', tab.id)
     if (!protocolIsApplicable(tab.url)) {
-        console.log('not applicable', tab.url)
+        warning('not applicable', tab.url)
         return;
     }
     browser.tabs.executeScript(tab.id, {file: "dist/content.js"})
@@ -101,7 +105,7 @@ Each time a tab is updated, reset the page action for that tab.
 */
 browser.tabs.onUpdated.addListener((id, changeInfo, tab) => {
     initializePageAction(tab);
-    console.log('onUpdated', id, changeInfo, tab, enabledIds)
+    debug('onUpdated', id, changeInfo, tab, enabledIds)
     if (enabledIds.includes(id)) {
         enableOCR(tab)
     }
@@ -111,7 +115,7 @@ browser.tabs.onUpdated.addListener((id, changeInfo, tab) => {
 Toggle OCR on/off for tab
 */
 function enableOCR(tab) {
-    console.log('enable-ocr', tab.id)
+    info('enable-ocr', tab.id)
     if ( ! enabledIds.includes(tab.id)) {
         enabledIds.push(tab.id);
     }
@@ -128,7 +132,7 @@ function enableOCR(tab) {
 }
 
 function disableOCR(tab) {
-    console.log('disable-ocr', tab.id)
+    info('disable-ocr', tab.id)
     enabledIds.splice(enabledIds.indexOf(tab.id), 1)
     browser.pageAction.setIcon({tabId: tab.id, path: "icons/off.png"});
     browser.pageAction.setTitle({tabId: tab.id, title: TITLE_APPLY});
@@ -165,7 +169,7 @@ browser.menus.create({
 // });
 
 browser.menus.onClicked.addListener((info, tab) => {
-    console.log('menu clicked', info, tab);
+    debug('menu clicked', info, tab);
     switch (info.menuItemId) {
         case "selection-translate":
             browser.tabs.sendMessage(tab.id, {
@@ -190,7 +194,7 @@ function BroadcastMessage(msg) {
 browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg.type) {
         case 'set-endpoint': {
-            console.log('setting endpoint', msg.endpoint);
+            debug('setting endpoint', msg.endpoint);
             ENDPOINT = msg.endpoint;
             browser.storage.local.set({endpoint: ENDPOINT});
             // Broadcast the endpoint to all tabs
@@ -201,12 +205,12 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             break;
         }
         case 'get-endpoint': {
-            console.log('getting endpoint', ENDPOINT);
+            debug('getting endpoint', ENDPOINT);
             sendResponse({endpoint: ENDPOINT});
             break;
         }
         case 'set-font-scale': {
-            console.log('setting font scale', msg.fontScale);
+            debug('setting font scale', msg.fontScale);
             FONT_SCALE = msg.fontScale;
             browser.storage.local.set({fontScale: FONT_SCALE});
             // Broadcast the font scale to all tabs
@@ -217,12 +221,12 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             break;
         }
         case 'get-font-scale': {
-            console.log('getting font scale', FONT_SCALE);
+            debug('getting font scale', FONT_SCALE);
             sendResponse({fontScale: FONT_SCALE});
             break;
         }
         case 'set-color': {
-            console.log('setting color', msg.color);
+            debug('setting color', msg.color);
             [R, G, B] = msg.color;
             browser.storage.local.set({R: R, G: G, B: B});
             // Broadcast the color to all tabs
@@ -232,25 +236,37 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             })
             break;
         }
+        // case 'get-log-level': {
+        //     console.log('getting log level', LOG_LEVEL);
+        //     sendResponse({logLevel: LOG_LEVEL});
+        //     break;
+        // }
+        case 'set-log-level': {
+            setLogLevel(msg.logLevel);
+            debug('setting log level', msg.logLevel);
+            // LOG_LEVEL = msg.logLevel;
+            // browser.storage.local.set({logLevel: LOG_LEVEL});
+            break;
+        }
         case 'set-lang-src': {
-            console.log('setting lang src', msg.lang);
+            debug('setting lang src', msg.lang);
             LANG_SRC = msg.lang;
             browser.storage.local.set({langSrc: LANG_SRC});
             break;
         }
         case 'set-lang-dst': {
-            console.log('setting lang dst', msg.lang);
+            debug('setting lang dst', msg.lang);
             LANG_DST = msg.lang;
             browser.storage.local.set({langDst: LANG_DST});
             break;
         }
         case 'get-color': {
-            console.log('getting color', [R, G, B]);
+            debug('getting color', [R, G, B]);
             sendResponse({color: [R, G, B]});
             break;
         }
         case 'set-show-text': {
-            console.log('showing translated text', msg);
+            debug('showing translated text', msg);
             SHOW_TRANSLATED = msg.active;
             TEXT_ORIENTATION = msg.orientation;
             browser.storage.local.set({showTranslated: SHOW_TRANSLATED});
@@ -262,7 +278,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             break;
         }
         case 'get-show-text': {
-            console.log('getting show text', SHOW_TRANSLATED);
+            debug('getting show text', SHOW_TRANSLATED);
             sendResponse({
                 showTranslated: SHOW_TRANSLATED,
                 orientation: TEXT_ORIENTATION,
@@ -270,7 +286,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             break;
         }
         case 'set-selected-options': {
-            console.log('setting selected options', msg.options);
+            debug('setting selected options', msg.options);
             SELECTED_OPTIONS = msg.options;
             browser.storage.local.set({selectedOptions: SELECTED_OPTIONS});
             BroadcastMessage({

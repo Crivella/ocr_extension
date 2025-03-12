@@ -19,6 +19,9 @@
 /*
     * This file contains functions for wrapping and unwrapping images.
 */
+
+import { debug } from "./logging";
+
 export const wrapperClass = "ocr-wrapper";
 export const wrappedClass = "ocr-wrapped";
 
@@ -46,7 +49,7 @@ Add the ocr-wrapped class to the image node.
 export function wrapImage(img) {
     // This is necessary since some sites can replace an already wrapped image
     // using JS (at somepoint this should be detected automatically)
-    console.log('wrapping image');
+    debug('wrapping image');
 
     var newImg;
     var wrapper;
@@ -60,7 +63,7 @@ export function wrapImage(img) {
         wrapper.appendChild(newImg);
         img.replaceWith(wrapper);
     }
-    console.log('copying class', newImg.classList);
+    debug('copying class', newImg.classList);
     newImg.classList.forEach((cls) => {
         wrapper.classList.add(cls);
     })
@@ -75,7 +78,7 @@ export function wrapImage(img) {
 Unwrap an image node, by removing the wrapper div and add-on classes from the node.
 */
 export function unwrapImage(img) {
-    console.log('unwrapping image');
+    debug('unwrapping image');
 
     img.classList.remove(wrappedClass);
     img.classList.remove('ocr-loading');

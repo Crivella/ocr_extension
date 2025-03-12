@@ -23,6 +23,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactDOM from 'react-dom/client';
 
 import { getOtherTranslations, setManualTranslation } from "./API";
+import { debug } from "./logging";
 
 var menu = null;
 var target = null;
@@ -52,7 +53,7 @@ export function createContextMenu(e) {
     document.body.appendChild(menu);
     document.addEventListener('click', handleMenuClick)
     document.addEventListener('contextmenu', handleMenuRightClick)
-    console.log('creating context menu', menu);
+    debug('creating context menu', menu);
 
     const root = ReactDOM.createRoot(menu);
     root.render(
@@ -214,7 +215,7 @@ function createDialogManual(target) {
     form.appendChild(submit);
 
     submit.addEventListener('click', (e) => {
-        console.log('submitting', textarea.value);
+        debug('submitting', textarea.value);
         e.preventDefault();
         e.stopPropagation();
         setManualTranslation(target.originalText, textarea.value);
@@ -224,7 +225,7 @@ function createDialogManual(target) {
     })
 
     form.addEventListener('submit', (e) => {
-        console.log('submitting', textarea.value);
+        debug('submitting', textarea.value);
         e.preventDefault();
         e.stopPropagation();
         setManualTranslation(target.originalText, textarea.value);
@@ -272,7 +273,7 @@ function MenuItem({ id, children }) {
     const onClick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('clicked', id);
+        debug('clicked', id);
         setValue(id);
     }
 
@@ -316,31 +317,31 @@ function TextBoxMenu() {
     // Handle an action being selected.
     useEffect(() => {
         if (value) {
-            console.log('value', value);
+            debug('TextBoxMenu: value', value);
             switch (value) {
                 case actionIds.close: {
-                    console.log('close');
+                    debug('TextBoxMenu: close');
                     removeBox();
                     destroyContextMenu();
                     break;
                 }
                 case actionIds.copyOriginal: {
-                    console.log('copy original');
+                    debug('TextBoxMenu: copy original');
                     navigator.clipboard.writeText(target.originalText);
                     destroyContextMenu();
                     break;
                 }
                 case actionIds.copyTranslated: {
-                    console.log('copy translated');
+                    debug('TextBoxMenu: copy translated');
                     navigator.clipboard.writeText(target.translatedText);
                     destroyContextMenu();
                     break;
                 }
                 case actionIds.getOtherTranslations: {
-                    console.log('get other translations');
+                    debug('TextBoxMenu: get other translations');
                     getOtherTranslations(target.originalText)
                         .then((res) => {
-                            console.log('got other translations', res);
+                            debug('TextBoxMenu: got other translations', res);
 
                             createDialogTranslations(res.translations);
 
@@ -352,7 +353,7 @@ function TextBoxMenu() {
                     break;
                 }
                 case actionIds.manualTranslation: {
-                    console.log(`manual translation ${target.translatedText}`);
+                    debug(`TextBoxMenu: manual translation ${target.translatedText}`);
                     createDialogManual(target);
                     document.body.appendChild(dialog);
                     dialog.show();
@@ -360,7 +361,7 @@ function TextBoxMenu() {
                     break;
                 }
                 default: {
-                    console.log('unknown');
+                    debug('TextBoxMenu: unknown');
                     break;
                 }
             }

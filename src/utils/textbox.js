@@ -32,7 +32,7 @@ export function drawBox({box, toWrite, max_width, max_height}) {
     const w = r-l;
     const h = t-b;
 
-    console.log('BOX',l,b,r,t,w,h);
+    debug('drawBox:', l,b,r,t,w,h);
 
     const text = document.createElement('div');
     text.className = textboxClass;

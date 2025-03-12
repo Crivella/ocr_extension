@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { post } from "../utils/API";
+import { debug } from "../utils/logging";
 
 /*
 Generic React component to draw a submission form.
@@ -24,7 +25,7 @@ export function SubmitUnit({children, target, data, endpoint}) {
             setErrorMsg(err.response.data.error);
         },
         onSuccess: () => {
-            console.log('success');
+            debug(`POST ${endpoint}/${target}/ success`);
             setSuccess(true);
         },
         onSettled: () => {
@@ -35,11 +36,11 @@ export function SubmitUnit({children, target, data, endpoint}) {
 
     const onSubmit = useCallback(async (e) => {
         e.preventDefault();
-        console.log(updateMutation.status)
+        debug('submit - mutation status', updateMutation.status);
         if (updateMutation.isLoading) {
             return;
         }
-        console.log('submitting', data);
+        debug('submitting', data);
         updateMutation.mutate(data);
     }, [updateMutation, data]);
 

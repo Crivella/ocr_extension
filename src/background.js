@@ -26,7 +26,7 @@ This is the background page. It is responsible for:
     - handle communication between the content and the popup
 */
 
-import { debug, DEFAULT_LOG_LEVEL, info, warning } from './utils/logging.js';
+import { debug, DEFAULT_LOG_LEVEL, info, setLogLevel, warning } from './utils/logging.js';
 
 const TITLE_APPLY = "Enable OCR";
 const TITLE_REMOVE = "Disable OCR";
@@ -44,6 +44,7 @@ var G;
 var B;
 var LANG_SRC;
 var LANG_DST;
+var LOG_LEVEL;
 var SELECTED_OPTIONS;
 
 browser.storage.local.get().then((res) => {
@@ -57,6 +58,7 @@ browser.storage.local.get().then((res) => {
     G = res.G || 68;
     B = res.B || 68;
     SELECTED_OPTIONS = res.selectedOptions || {};
+    LOG_LEVEL = res.logLevel || DEFAULT_LOG_LEVEL;
     setLogLevel(res.logLevel || DEFAULT_LOG_LEVEL);
 })
 
@@ -74,7 +76,7 @@ function protocolIsApplicable(url) {
 Inject the content in a tab
 */
 function initializePageAction(tab) {
-    // console.log('initializePageAction', tab.id)
+    debug('initializePageAction', tab.id)
     if (!protocolIsApplicable(tab.url)) {
         warning('not applicable', tab.url)
         return;
@@ -84,6 +86,10 @@ function initializePageAction(tab) {
     browser.tabs.sendMessage(tab.id, {
         type: 'set-endpoint',
         endpoint: ENDPOINT,
+    })
+    browser.tabs.sendMessage(tab.id, {
+        type: 'set-log-level',
+        level: LOG_LEVEL,
     })
     browser.pageAction.setIcon({tabId: tab.id, path: "icons/off.png"});
     browser.pageAction.setTitle({tabId: tab.id, title: TITLE_APPLY});
@@ -194,14 +200,10 @@ function BroadcastMessage(msg) {
 browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg.type) {
         case 'set-endpoint': {
-            debug('setting endpoint', msg.endpoint);
             ENDPOINT = msg.endpoint;
             browser.storage.local.set({endpoint: ENDPOINT});
             // Broadcast the endpoint to all tabs
-            BroadcastMessage({
-                type: 'set-endpoint',
-                endpoint: ENDPOINT,
-            })
+            BroadcastMessage(msg)
             break;
         }
         case 'get-endpoint': {
@@ -236,37 +238,28 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             })
             break;
         }
-        // case 'get-log-level': {
-        //     console.log('getting log level', LOG_LEVEL);
-        //     sendResponse({logLevel: LOG_LEVEL});
-        //     break;
-        // }
         case 'set-log-level': {
-            setLogLevel(msg.logLevel);
-            debug('setting log level', msg.logLevel);
-            // LOG_LEVEL = msg.logLevel;
-            // browser.storage.local.set({logLevel: LOG_LEVEL});
+            setLogLevel(msg.level);
+            BroadcastMessage(msg);
+            browser.storage.local.set({logLevel: msg.level});
+            LOG_LEVEL = msg.level;
             break;
         }
         case 'set-lang-src': {
-            debug('setting lang src', msg.lang);
             LANG_SRC = msg.lang;
             browser.storage.local.set({langSrc: LANG_SRC});
             break;
         }
         case 'set-lang-dst': {
-            debug('setting lang dst', msg.lang);
             LANG_DST = msg.lang;
             browser.storage.local.set({langDst: LANG_DST});
             break;
         }
         case 'get-color': {
-            debug('getting color', [R, G, B]);
             sendResponse({color: [R, G, B]});
             break;
         }
         case 'set-show-text': {
-            debug('showing translated text', msg);
             SHOW_TRANSLATED = msg.active;
             TEXT_ORIENTATION = msg.orientation;
             browser.storage.local.set({showTranslated: SHOW_TRANSLATED});
@@ -278,7 +271,6 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             break;
         }
         case 'get-show-text': {
-            debug('getting show text', SHOW_TRANSLATED);
             sendResponse({
                 showTranslated: SHOW_TRANSLATED,
                 orientation: TEXT_ORIENTATION,
@@ -287,7 +279,6 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         case 'set-selected-options': {
             debug('setting selected options', msg.options);
-            SELECTED_OPTIONS = msg.options;
             browser.storage.local.set({selectedOptions: SELECTED_OPTIONS});
             BroadcastMessage({
                 type: 'set-selected-options',
@@ -300,4 +291,5 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         default:
             break;
     }
+    debug('BACKGROUND: received message', msg, sender);
 })

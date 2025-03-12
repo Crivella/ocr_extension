@@ -20,16 +20,17 @@
     * This file contains functions for getting and handling blobs
 */
 import { getCanvas } from './image';
+import { debug, info } from './logging';
 
 /*
 Get the image
 */
 export async function fetchBlobFromUrl(url) {
-    console.log('FETCHING', url);
+    debug('fetchBlobFromUrl: ', url);
 
     const res = await fetch(url);
     const blob = await res.blob();
-    console.log(blob);
+    debug('fetchBlobFromUrl: ', blob);
 
     return blob;
 }
@@ -45,9 +46,8 @@ export function blobToBase64(blob) {
         reader.onloadend = function() {
             const split = reader.result.split(',');
             const fmt = split[0].split('/')[1].split(';')[0];
-            console.log(fmt)
+            debug('blobToBase64: ', fmt);
             const base64data = split[1];
-            // console.log(base64data);
             resolve([fmt, base64data]);
         }
     })
@@ -75,10 +75,10 @@ export async function base64FromAny(obj) {
         blob = await fetchBlobFromUrl(obj.src);
         var [fmt, data] = await blobToBase64(blob);
         if ( ! ['jpeg', 'png', 'gif'].includes(fmt) ) {
-            console.log('not supported format', fmt, 'falling back to canvas');
+            info('b64FromAny - not supported format', fmt, 'falling back to canvas');
             const canvas = getCanvas(obj);
             blob = await blobFromCanvas(canvas);
-            console.log('Generated blob:',blob)
+            debug('b64FromAny - blob', blob);
             data = (await blobToBase64(blob))[1];
         }
         base64data = data;

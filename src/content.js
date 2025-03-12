@@ -25,7 +25,7 @@ import { getOcr, setEndpoint, textTranslation } from './utils/API';
 import { base64FromAny } from './utils/blob';
 import { createContextMenu, destroyContextMenu, destroyDialog } from './utils/contextmenu';
 import { getSizes } from './utils/image';
-import { debug, info } from './utils/logging';
+import { debug, info, error as log_error, setLogLevel } from './utils/logging';
 import { drawBox } from './utils/textbox';
 import { unwrapImage, wrapImage } from './utils/wrapper';
 
@@ -70,7 +70,6 @@ Function used to avoid multiple injection (cleaner than using an if?)
         images.push(ptr);
 
         ocr.result.forEach(({ocr, tsl, box}) => {
-            // console.log(ocr, tsl, box)
             const [nw, nh] = getSizes(img);
             const toWrite = showTranslated ? tsl : ocr;
             const textdiv = drawBox({
@@ -148,7 +147,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         try {
             ocr = await getOcr(md5Hash, base64data, OPTIONS);
         } catch (err) {
-            error(err);
+            log_error(err);
             if (err.code === "ERR_NETWORK") {
                 error = 'Network error';
             } else if (err.code === "ERR_BAD_RESPONSE") {
@@ -321,7 +320,6 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 element.innerText = element.innerText.replace(msg.text, res.text);
                 break;
             case 'show-original-text':
-                debug('show-original', msg);
                 showTranslated = false;
                 orientation = msg.orientation;
                 document.documentElement.style.setProperty('--ocr-text-writing-mode', orientation || 'horizontal-tb');
@@ -332,7 +330,6 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 })
                 break;
             case 'show-translated-text':
-                debug('show-translated');
                 showTranslated = true;
                 orientation = msg.orientation;
                 document.documentElement.style.setProperty('--ocr-text-writing-mode', orientation || 'horizontal-tb');
@@ -343,11 +340,14 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 })
                 break
             case 'set-selected-options':
-                debug('set-selected-options', msg);
                 OPTIONS = msg.options;
                 break;
+            case 'set-log-level':
+                setLogLevel(msg.level);
+                break
             default:
-                debug('unknown message', msg);
+                break;
         }
+        debug('CONTENT: message received', msg);
     })
 })();

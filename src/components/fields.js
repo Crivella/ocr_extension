@@ -16,7 +16,6 @@ export function EndpointField() {
 
     const onSubmit = (e) => {
         e.preventDefault();
-        console.log(endpointInput);
         setEndpoint(endpointInput);
     }
 
@@ -78,7 +77,6 @@ export function FontScaleField() {
                 value={fontScale}
                 min="0.1" max="3" step="0.1"
                 onChange={(e) => setFontScale(e.target.value)}
-                onScroll={(e) => console.log(e)}
             />
         </div>
     )
@@ -99,7 +97,6 @@ export function RGBField() {
 
     // https://stackoverflow.com/questions/61821924/firefox-addon-input-type-color-closing-addon-popup-on-firefox
     // const onPick = (e) => {
-    //     console.log(e.target.value);
     //     const hex = e.target.value.slice(1);
     //     const r = parseInt(hex.slice(0, 2), 16);
     //     const g = parseInt(hex.slice(2, 4), 16);
@@ -221,7 +218,7 @@ export function LogLevelField() {
     const { logLevel, setLogLevel } = useContext(GlobalContext);
 
     const onChange = (e) => {
-        setLogLevel(e.target.value);
+        setLogLevel(parseInt(e.target.value));
     }
 
     return (

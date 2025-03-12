@@ -23,7 +23,7 @@ import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-quer
 
 import { AdvancedOptions } from "./components/collapsableForm";
 import { GlobalContext } from "./components/context";
-import { EndpointField, LogLevelField } from "./components/fields";
+import { EndpointField } from "./components/fields";
 import { PluginManager } from "./components/pluginManager";
 import { RenderOptionsForm } from "./components/renderOptions";
 import { LangUnit } from "./components/submitUnitLang";
@@ -134,7 +134,6 @@ function PopUp() {
             <PluginManager />
             <RenderOptionsForm />
             <AdvancedOptions />
-            <LogLevelField />
         </>
     )
 }

@@ -37,6 +37,7 @@ const enabledIds = [];
 /* Hub controlled variables */
 var ENDPOINT;
 var FONT_SCALE;
+var TEXTBOX_LINEWIDTH;
 var SHOW_TRANSLATED;
 var TEXT_ORIENTATION;
 var R;
@@ -50,6 +51,7 @@ var SELECTED_OPTIONS;
 browser.storage.local.get().then((res) => {
     ENDPOINT = res.endpoint || 'http://127.0.0.1:4000';
     FONT_SCALE = res.fontScale || 1.0;
+    TEXTBOX_LINEWIDTH = res.textboxLinewidth || 1;
     SHOW_TRANSLATED = res.showTranslated === undefined ? true : res.showTranslated;
     TEXT_ORIENTATION = res.textOrientation || 'horizontal-tb';
     LANG_SRC = res.langSrc;
@@ -90,6 +92,10 @@ function initializePageAction(tab) {
     browser.tabs.sendMessage(tab.id, {
         type: 'set-log-level',
         level: LOG_LEVEL,
+    })
+    browser.tabs.sendMessage(tab.id, {
+        type: 'set-textbox-linewidth',
+        linewidth: TEXTBOX_LINEWIDTH,
     })
     browser.pageAction.setIcon({tabId: tab.id, path: "icons/off.png"});
     browser.pageAction.setTitle({tabId: tab.id, title: TITLE_APPLY});
@@ -219,6 +225,17 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             BroadcastMessage({
                 type: 'set-font-scale',
                 fontScale: FONT_SCALE,
+            })
+            break;
+        }
+        case 'set-textbox-linewidth': {
+            debug('setting textbox linewidth', msg.linewidth);
+            TEXTBOX_LINEWIDTH = msg.linewidth;
+            browser.storage.local.set({textboxLinewidth: TEXTBOX_LINEWIDTH});
+            // Broadcast the font scale to all tabs
+            BroadcastMessage({
+                type: 'set-textbox-linewidth',
+                linewidth: TEXTBOX_LINEWIDTH,
             })
             break;
         }

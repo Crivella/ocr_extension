@@ -30,7 +30,7 @@ import { LangUnit } from "./components/submitUnitLang";
 import { ModelUnit } from "./components/submitUnitModel";
 import { ThemeSwitch } from "./components/themeSwitch";
 import { get, handshake } from "./utils/API";
-import { debug, DEFAULT_LOG_LEVEL, setLogLevel as globalSetLogLevel } from "./utils/logging";
+import { critical, debug, DEFAULT_LOG_LEVEL, setLogLevel as globalSetLogLevel } from "./utils/logging";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +143,7 @@ React component to handle the context and messaging with the background script.
 */
 export function Hub() {
     const [fontScale, setFontScale] = useState();
+    const [textboxLinewidth, setTextboxLinewidth] = useState();
     const [RGB, setRGB] = useState([undefined, undefined, undefined]);
     const [langSrc, setLangSrc] = useState('');
     const [langDst, setLangDst] = useState('');
@@ -196,6 +197,10 @@ export function Hub() {
         browser.storage.local.get('logLevel').then((response) => {
             setLogLevel(response.logLevel || DEFAULT_LOG_LEVEL);
         })
+        browser.storage.local.get('textboxLinewidth').then((response) => {
+            critical('tbLineWidth', response);
+            setTextboxLinewidth(response.textboxLinewidth || 1);
+        })
     }, [])
 
     useEffect(() => {
@@ -227,6 +232,16 @@ export function Hub() {
         }
         debug('useEffect[fontScale]', fontScale);
     }, [fontScale])
+
+    useEffect(() => {
+        if (textboxLinewidth !== undefined){
+            browser.runtime.sendMessage({
+                type: 'set-textbox-linewidth',
+                linewidth: textboxLinewidth,
+            })
+        }
+        debug('useEffect[lineWidth]', textboxLinewidth);
+    }, [textboxLinewidth])
 
     useEffect(() => {
         if (RGB[0] !== undefined) {
@@ -277,6 +292,7 @@ export function Hub() {
         ocrModel: ocrModel, setOcrModel: setOcrModel,
         tslModel: tslModel, setTslModel: setTslModel,
         fontScale: fontScale, setFontScale: setFontScale,
+        textboxLinewidth: textboxLinewidth, setTextboxLinewidth: setTextboxLinewidth,
         RGB: RGB, setRGB: setRGB,
         langSrc: langSrc, setLangSrc: setLangSrc,
         langDst: langDst, setLangDst: setLangDst,

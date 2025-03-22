@@ -83,6 +83,25 @@ export function FontScaleField() {
 }
 
 /*
+React component to draw a field for the font scale.
+*/
+export function TextboxLinewidthField() {
+    const { textboxLinewidth, setTextboxLinewidth } = useContext(GlobalContext);
+
+    return (
+        <div className="field">
+            <label htmlFor="textbox-linewidth">Textbox Linewidth</label>
+            <input
+                type="number" id="textbox-linewidth" name="textbox-linewidth"
+                value={textboxLinewidth}
+                min="0" max="10" step="1"
+                onChange={(e) => setTextboxLinewidth(e.target.value)}
+            />
+        </div>
+    )
+}
+
+/*
 React component to draw a field/s for the font RGB color.
 */
 export function RGBField() {

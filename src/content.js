@@ -308,6 +308,9 @@ Function used to avoid multiple injection (cleaner than using an if?)
             case 'set-font-scale':
                 document.documentElement.style.setProperty('--ocr-text-font-scale', msg.fontScale);
                 break;
+            case 'set-textbox-linewidth':
+                document.documentElement.style.setProperty('--ocr-textbox-linewidth', `${msg.linewidth}px`);
+                break;
             case 'set-color':
                 document.documentElement.style.setProperty('--ocr-text-color', `rgb(${msg.color.join(',')})`);
                 break;

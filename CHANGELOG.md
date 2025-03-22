@@ -6,6 +6,7 @@ List of changes between versions
 
 - Added this file
 - Added controllable logging instead of just printing everything to console all the time
+- Added render option to adjust line-width of textboxes contours
 
 ## 0.3.0
 

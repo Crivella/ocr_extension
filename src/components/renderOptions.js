@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 
 import { CollapsableForm } from './collapsableForm';
 import { GlobalContext } from "./context";
-import { FontScaleField, RGBField } from "./fields";
+import { FontScaleField, RGBField, TextboxLinewidthField } from "./fields";
 
 function Checkbox({label, name, value, setValue}) {
     return (
@@ -33,12 +33,22 @@ function DisplayMode() {
     )
 }
 
+function TextRenderOptions() {
+    return (
+        <div className="subunit">
+            <b>Text Render Options</b>
+            <FontScaleField />
+            <RGBField />
+        </div>
+    )
+}
+
 export function RenderOptionsForm() {
     return (
         <CollapsableForm title={'Render options'}>
             <DisplayMode />
-            <FontScaleField />
-            <RGBField />
+            <TextRenderOptions />
+            <TextboxLinewidthField />
         </CollapsableForm>
     )
 }

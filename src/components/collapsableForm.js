@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 
 import { GlobalContext } from "./context";
+import { LogLevelField } from "./fields";
 
 
 
@@ -8,9 +9,8 @@ export function AdvancedOptions() {
     const { allowedOptions } = useContext(GlobalContext);
 
     return (
-        allowedOptions === undefined ? <></> :
         <CollapsableForm title={'Advanced options'}>
-            {Object.keys(allowedOptions).map((e) => {
+            {Object.keys(allowedOptions || []).map((e) => {
                 return (
                     <CollapsableForm title={e}>
                         {Object.keys(allowedOptions[e]).map((f) => {
@@ -28,12 +28,13 @@ export function AdvancedOptions() {
                     </CollapsableForm>
                     )
             })}
-            <ResetButton />
+            {allowedOptions === undefined ? <></> : <OptionsResetButton />}
+            <LogLevelField />
         </CollapsableForm>
     )
 }
 
-function ResetButton() {
+function OptionsResetButton() {
     const { setSelectedOptions } = useContext(GlobalContext);
     const [firstClick, setFirstClick] = useState(false);
     const [text, setText] = useState('Reset');

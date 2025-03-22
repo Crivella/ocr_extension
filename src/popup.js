@@ -30,6 +30,7 @@ import { LangUnit } from "./components/submitUnitLang";
 import { ModelUnit } from "./components/submitUnitModel";
 import { ThemeSwitch } from "./components/themeSwitch";
 import { get, handshake } from "./utils/API";
+import { critical, debug, DEFAULT_LOG_LEVEL, setLogLevel as globalSetLogLevel } from "./utils/logging";
 
 const queryClient = new QueryClient();
 
@@ -50,7 +51,7 @@ function PopUp() {
     } = useContext(GlobalContext);
 
 
-    const query = useQuery({
+    const queryEndpoint = useQuery({
         queryKey: ['endpoint', endpoint],
         queryFn: ({ signal }) => handshake({ endpoint, signal }),
         enabled: endpoint !== '',
@@ -73,51 +74,50 @@ function PopUp() {
 
 
     useEffect(() => {
-        console.log('QUERY handshake', query);
-        if (query.data) {
-            setBoxModels(query.data.BOXModels || []);
-            setOcrModels(query.data.OCRModels || []);
-            setTslModels(query.data.TSLModels || []);
-            setLangChoices(query.data.Languages || []);
-            setLangChoicesHR(query.data.Languages_hr || []);
-            setBoxModel(query.data.box_selected || '');
-            setOcrModel(query.data.ocr_selected || '');
-            setTslModel(query.data.tsl_selected || '');
-            setLangSrc(query.data.lang_src || '');
-            setLangDst(query.data.lang_dst || '');
-            setServerVersion(query.data.version || []);
+        debug('QUERY handshake', queryEndpoint);
+        if (queryEndpoint.data) {
+            setBoxModels(queryEndpoint.data.BOXModels || []);
+            setOcrModels(queryEndpoint.data.OCRModels || []);
+            setTslModels(queryEndpoint.data.TSLModels || []);
+            setLangChoices(queryEndpoint.data.Languages || []);
+            setLangChoicesHR(queryEndpoint.data.Languages_hr || []);
+            setBoxModel(queryEndpoint.data.box_selected || '');
+            setOcrModel(queryEndpoint.data.ocr_selected || '');
+            setTslModel(queryEndpoint.data.tsl_selected || '');
+            setLangSrc(queryEndpoint.data.lang_src || '');
+            setLangDst(queryEndpoint.data.lang_dst || '');
+            setServerVersion(queryEndpoint.data.version || []);
 
             browser.runtime.sendMessage({
                 type: 'set-endpoint',
                 endpoint: endpoint,
             })
         }
-    }, [query.data])
+    }, [queryEndpoint.data])
 
     useEffect(() => {
-        if (query.isSuccess) {
-            console.log('QUERY - success');
+        if (queryEndpoint.isSuccess) {
+            debug('QUERY ENDPOINT - success');
             setSuccessEndpoint(true);
         } else {
             setSuccessEndpoint(false);
         }
-    }, [query.isSuccess])
+    }, [queryEndpoint.isSuccess])
 
     useEffect(() => {
-        console.log('QUERY OPTIONS', queryOptions);
+        debug('QUERY OPTIONS', queryOptions);
         if (queryOptions.data) {
-            console.log('QUERY OPTIONS - success');
-            console.log(queryOptions.data);
+            debug('QUERY OPTIONS - success', queryOptions.data);
             setAllowedOptions(queryOptions.data.options);
         }
     }, [queryOptions.data])
 
     useEffect(() => {
-        console.log('QUERY Plugins', queryPlugins);
+        debug('QUERY Plugins', queryPlugins);
         if (queryPlugins.isSuccess) {
-            console.log('QUERY Plugins - success');
+            debug('QUERY Plugins - success');
             if (queryPlugins.data) {
-                console.log(queryPlugins.data);
+                debug('QUERY Plugins - data', queryPlugins.data);
                 setPlugins(queryPlugins.data);
             }
         } else {
@@ -143,6 +143,7 @@ React component to handle the context and messaging with the background script.
 */
 export function Hub() {
     const [fontScale, setFontScale] = useState();
+    const [textboxLinewidth, setTextboxLinewidth] = useState();
     const [RGB, setRGB] = useState([undefined, undefined, undefined]);
     const [langSrc, setLangSrc] = useState('');
     const [langDst, setLangDst] = useState('');
@@ -162,9 +163,10 @@ export function Hub() {
     const [allowedOptions, setAllowedOptions] = useState(undefined);
     const [selectedOptions, setSelectedOptions] = useState(undefined);
     const [plugins, setPlugins] = useState({});
+    const [logLevel, setLogLevel] = useState(undefined);
 
     useEffect(() => {
-        console.log('useEffect - init');
+        debug('useEffect - init');
         browser.runtime.sendMessage({
             type: 'get-endpoint',
         }).then((response) => {
@@ -192,7 +194,13 @@ export function Hub() {
         browser.storage.local.get('selectedOptions').then((response) => {
             setSelectedOptions(response.selectedOptions || {});
         })
-
+        browser.storage.local.get('logLevel').then((response) => {
+            setLogLevel(response.logLevel || DEFAULT_LOG_LEVEL);
+        })
+        browser.storage.local.get('textboxLinewidth').then((response) => {
+            critical('tbLineWidth', response);
+            setTextboxLinewidth(response.textboxLinewidth || 1);
+        })
     }, [])
 
     useEffect(() => {
@@ -202,6 +210,7 @@ export function Hub() {
                 lang: langSrc,
             })
         }
+        debug('useEffect[langSrc]', langSrc);
     }, [langSrc])
 
     useEffect(() => {
@@ -211,6 +220,7 @@ export function Hub() {
                 lang: langDst,
             })
         }
+        debug('useEffect[langDst]', langDst);
     }, [langDst])
 
     useEffect(() => {
@@ -220,7 +230,18 @@ export function Hub() {
                 fontScale: fontScale,
             })
         }
+        debug('useEffect[fontScale]', fontScale);
     }, [fontScale])
+
+    useEffect(() => {
+        if (textboxLinewidth !== undefined){
+            browser.runtime.sendMessage({
+                type: 'set-textbox-linewidth',
+                linewidth: textboxLinewidth,
+            })
+        }
+        debug('useEffect[lineWidth]', textboxLinewidth);
+    }, [textboxLinewidth])
 
     useEffect(() => {
         if (RGB[0] !== undefined) {
@@ -229,6 +250,7 @@ export function Hub() {
                 color: RGB,
             })
         }
+        debug('useEffect[RGB]', RGB);
     }, [RGB])
 
     useEffect(() => {
@@ -238,6 +260,7 @@ export function Hub() {
                 options: selectedOptions
             })
         }
+        debug('useEffect[selectedOptions]', selectedOptions);
     }, [selectedOptions])
 
     useEffect(() => {
@@ -248,12 +271,20 @@ export function Hub() {
                 orientation: orientation,
             })
         }
+        debug('useEffect[showTranslated, orientation]', showTranslated, orientation);
     }, [showTranslated, orientation])
 
+
     useEffect(() => {
-        console.log('useEffect - selectedOptions');
-        console.log(selectedOptions);
-    }, [selectedOptions])
+        if (logLevel !== undefined) {
+            globalSetLogLevel(logLevel);
+            browser.runtime.sendMessage({
+                type: 'set-log-level',
+                level: logLevel,
+            })
+        }
+        debug('useEffect[logLevel]', logLevel);
+    }, [logLevel])
 
     const newProps = {
         endpoint: endpoint, setEndpoint: setEndpoint,
@@ -261,6 +292,7 @@ export function Hub() {
         ocrModel: ocrModel, setOcrModel: setOcrModel,
         tslModel: tslModel, setTslModel: setTslModel,
         fontScale: fontScale, setFontScale: setFontScale,
+        textboxLinewidth: textboxLinewidth, setTextboxLinewidth: setTextboxLinewidth,
         RGB: RGB, setRGB: setRGB,
         langSrc: langSrc, setLangSrc: setLangSrc,
         langDst: langDst, setLangDst: setLangDst,
@@ -278,6 +310,7 @@ export function Hub() {
         selectedOptions: selectedOptions, setSelectedOptions: setSelectedOptions,
         plugins: plugins, setPlugins: setPlugins,
         serverVersion: serverVersion, setServerVersion: setServerVersion,
+        logLevel: logLevel, setLogLevel: setLogLevel,
     }
 
     return (

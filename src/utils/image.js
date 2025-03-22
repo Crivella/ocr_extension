@@ -20,6 +20,8 @@
     * Image related functions
 */
 
+import { debug } from "./logging";
+
 /*
 Get the sizes of an image
 */
@@ -41,7 +43,7 @@ export function getSizes(img) {
 Transform an image node to a canvas node
 */
 export function getCanvas(img) {
-    console.log('Generating blob using canvas');
+    debug('Generating blob using canvas');
     // Make sure to use real dimension to draw image
     // Otherwise any resize will result in different blob and md5
     // ... causing the OCR to be called again
@@ -52,7 +54,6 @@ export function getCanvas(img) {
     const ctx = c.getContext('2d');
     c.width = w;
     c.height = h;
-    // console.log(img.width, img.height);
     ctx.drawImage(img, 0, 0, w, h);
 
     return c

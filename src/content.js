@@ -25,6 +25,7 @@ import { getOcr, setEndpoint, textTranslation } from './utils/API';
 import { base64FromAny } from './utils/blob';
 import { createContextMenu, destroyContextMenu, destroyDialog } from './utils/contextmenu';
 import { getSizes } from './utils/image';
+import { debug, info, error as log_error, setLogLevel } from './utils/logging';
 import { drawBox } from './utils/textbox';
 import { unwrapImage, wrapImage } from './utils/wrapper';
 
@@ -59,7 +60,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         - Copy text to clipboard on click
     */
     function applyOcr(img, wrapper, ocr) {
-        console.log('applying ocr');
+        debug('applying ocr');
 
         const ptr = {
             img: img,
@@ -69,7 +70,6 @@ Function used to avoid multiple injection (cleaner than using an if?)
         images.push(ptr);
 
         ocr.result.forEach(({ocr, tsl, box}) => {
-            // console.log(ocr, tsl, box)
             const [nw, nh] = getSizes(img);
             const toWrite = showTranslated ? tsl : ocr;
             const textdiv = drawBox({
@@ -96,7 +96,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
      - Draw one text box on top of the image (in the middle)
     */
     const applyError = (img, wrapper, error) => {
-        console.log('applying error');
+        debug('applying error');
 
         const ptr = {
             img: img,
@@ -127,10 +127,10 @@ Function used to avoid multiple injection (cleaner than using an if?)
         - 'load': remove existing result and re-process image on reload
     */
     async function processImage(img) {
-        console.log('PROCESSING', img);
+        debug('PROCESSING', img);
         // This is the entire image size (should be atleas 10k pixels)
         if ( img.width*img.height < 100*100 ) {
-            console.log('image too small', img.width, img.height);
+            info('image too small', img.width, img.height);
             return;
         }
         
@@ -147,7 +147,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         try {
             ocr = await getOcr(md5Hash, base64data, OPTIONS);
         } catch (err) {
-            console.log(err);
+            log_error(err);
             if (err.code === "ERR_NETWORK") {
                 error = 'Network error';
             } else if (err.code === "ERR_BAD_RESPONSE") {
@@ -178,7 +178,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
     */
     function onImageReload(e) {
         const img = e.target;
-        console.log('image reloaded');
+        debug('image reloaded');
         const topop = [];
         images.forEach((ptr, idx) => {
             if (ptr.img === img) {
@@ -205,7 +205,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
     function handleNodeInserted(e) {
         const tag = e.target.tagName;
         if (['IMG', 'CANVAS'].includes(tag)) {
-            console.log('image inserted');
+            debug('image inserted');
             processImage(e.target);
         }
     }
@@ -217,7 +217,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
     function handleNodeRemoved(e) {
         const tag = e.target.tagName;
         if (['IMG', 'CANVAS'].includes(tag)) {
-            console.log('image removed');
+            debug('image removed');
             const topop = [];
             images.forEach((ptr, idx) => {
                 if (ptr.img === e.target) {
@@ -248,7 +248,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
             return;
         }
         OCR = true;
-        console.log('enabling OCR');
+        info('enabling OCR');
         document.querySelectorAll('img').forEach((img) => {
             processImage(img);
         })
@@ -270,15 +270,15 @@ Function used to avoid multiple injection (cleaner than using an if?)
             return;
         }
         OCR = false;
-        console.log('disabling OCR');
+        info('disabling OCR');
         document.removeEventListener('DOMNodeInserted', handleNodeInserted);
         document.removeEventListener('DOMNodeRemoved', handleNodeRemoved);
         
-        console.log(images);
+        debug(images);
         var i = images.length;
         while (i--) {
             const ptr = images[i];
-            console.log('DO', ptr);
+            debug('DO', ptr);
             ptr.boxes.forEach((textbox) => {
                 textbox.remove();
             })
@@ -308,19 +308,21 @@ Function used to avoid multiple injection (cleaner than using an if?)
             case 'set-font-scale':
                 document.documentElement.style.setProperty('--ocr-text-font-scale', msg.fontScale);
                 break;
+            case 'set-textbox-linewidth':
+                document.documentElement.style.setProperty('--ocr-textbox-linewidth', `${msg.linewidth}px`);
+                break;
             case 'set-color':
                 document.documentElement.style.setProperty('--ocr-text-color', `rgb(${msg.color.join(',')})`);
                 break;
             case 'translate-selection':
-                console.log('translate-selection... run', msg);
+                debug('translate-selection... run', msg);
                 const res = await textTranslation(msg.text);
-                console.log('translate-selection... res', res);
+                debug('translate-selection... res', res);
                 const element = browser.menus.getTargetElement(msg.targetElementId);
-                console.log('translate-selection... element', element, msg.text, res.text);
+                debug('translate-selection... element', element, msg.text, res.text);
                 element.innerText = element.innerText.replace(msg.text, res.text);
                 break;
             case 'show-original-text':
-                console.log('show-original', msg);
                 showTranslated = false;
                 orientation = msg.orientation;
                 document.documentElement.style.setProperty('--ocr-text-writing-mode', orientation || 'horizontal-tb');
@@ -331,7 +333,6 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 })
                 break;
             case 'show-translated-text':
-                console.log('show-translated');
                 showTranslated = true;
                 orientation = msg.orientation;
                 document.documentElement.style.setProperty('--ocr-text-writing-mode', orientation || 'horizontal-tb');
@@ -342,11 +343,14 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 })
                 break
             case 'set-selected-options':
-                console.log('set-selected-options', msg);
                 OPTIONS = msg.options;
                 break;
+            case 'set-log-level':
+                setLogLevel(msg.level);
+                break
             default:
-                console.log('unknown message', msg);
+                break;
         }
+        debug('CONTENT: message received', msg);
     })
 })();

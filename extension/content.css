@@ -12,6 +12,7 @@
     --ocr-text-word-wrap: break-word;
     --ocr-text-white-space: break-spaces;
     --ocr-text-font-scale: 1;
+    --ocr-textbox-linewidth: 1px;
     --ocr-text-writing-mode: horizontal-tb;
 }
 
@@ -43,7 +44,7 @@
     visibility: visible;
     background-color: var(--ocr-text-bg-color);
     
-    border: 1px solid var(--ocr-text-border-color);
+    border: var(--ocr-textbox-linewidth) solid var(--ocr-text-border-color);
     color: var(--ocr-text-color);
     /* visibility: hidden; */
     /* opacity: 0.8; */

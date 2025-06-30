@@ -51,27 +51,24 @@ export function wrapImage(img) {
     // using JS (at somepoint this should be detected automatically)
     debug('wrapping image');
 
-    var newImg;
     var wrapper;
     if (img.parentNode.classList.contains(wrapperClass)) {
         img.classList.remove(wrappedClass);
-        newImg = img;
         wrapper = img.parentNode;
     } else {
-        newImg = cloneNode(img);
         wrapper = document.createElement('div');
-        wrapper.appendChild(newImg);
-        img.replaceWith(wrapper);
+        img.after(wrapper);
+        wrapper.appendChild(img);
+        debug('copying class', img.classList);
+        img.classList.forEach((cls) => {
+            wrapper.classList.add(cls);
+        })
     }
-    debug('copying class', newImg.classList);
-    newImg.classList.forEach((cls) => {
-        wrapper.classList.add(cls);
-    })
 
-    newImg.classList.add(wrappedClass);
+    img.classList.add(wrappedClass);
     wrapper.classList.add(wrapperClass);
 
-    return [newImg, wrapper]
+    return [img, wrapper]
 }
 
 /*

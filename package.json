@@ -1,6 +1,6 @@
 {
 	"name": "ocr_extension",
-	"version": "0.3.1",
+	"version": "0.3.3",
 	"description": "A browser extension working with a backend server running OCR+translation to in-place translate all images on an active tab.",
 	"license": "GPL-3.0",
 	"author": "Davide Grassano",

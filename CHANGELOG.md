@@ -2,6 +2,11 @@
 
 List of changes between versions
 
+## 0.3.3
+
+- Switching from `DOMNodeInserted` and `DOMNodeRemoved` events to a `MutationObserver` to handle changes in the DOM
+  This catches changes in the DOM more reliably (in particular replaceChild calls) and is more performant
+
 ## 0.3.2
 
 - Fixed an issue with websites that impose a `text-indent` on the image original class (inherited by the wrapper div and thus the wrapped text)

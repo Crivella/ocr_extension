@@ -2,7 +2,7 @@
 
   "manifest_version": 2,
   "name": "OCR_extension",
-  "version": "0.3.2",
+  "version": "0.3.3",
 
   "description": "A browser extension working with a backend server running OCR+translation to in-place translate all images on an active tab.",
 

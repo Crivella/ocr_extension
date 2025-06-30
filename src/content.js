@@ -45,6 +45,26 @@ Function used to avoid multiple injection (cleaner than using an if?)
     var showTranslated = true;
     var orientation = 'horizontal-tb';
 
+    var observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.tagName === 'IMG' || node.tagName === 'CANVAS') {
+                        debug('image added', node);
+                        processImage(node);
+                    }
+                });
+                mutation.removedNodes.forEach((node) => {
+                    if (node.tagName === 'IMG' || node.tagName === 'CANVAS') {
+                        debug('image removed', node);
+                        destroyTextboxes(node);
+                    }
+                }
+                )
+            }
+        });
+    });
+
     browser.storage.local.get().then((res) => {
         showTranslated = res.showTranslated === undefined ? true : res.showTranslated;
         orientation = res.textOrientation || 'horizontal-tb';
@@ -178,49 +198,22 @@ Function used to avoid multiple injection (cleaner than using an if?)
     */
     function onImageReload(e) {
         const img = e.target;
-        debug('image reloaded');
-        const topop = [];
-        images.forEach((ptr, idx) => {
-            if (ptr.img === img) {
-                topop.push(idx);
-                ptr.boxes.forEach((box) => {
-                    box.remove();
-                })
-            }
-        })
-
-        topop.sort((a, b) => b - a);
-        topop.forEach((ptr) => {
-            const i = images.indexOf(ptr);
-            images.splice(i, 1);
-        })
+        destroyTextboxes(img);
 
         processImage(img);
     }
-    
-    /*
-    Used to handle 'DOMNodeInserted' event on the document.
-    EG: some sites can add images to the page using JS.
-    */
-    function handleNodeInserted(e) {
-        const tag = e.target.tagName;
-        if (['IMG', 'CANVAS'].includes(tag)) {
-            debug('image inserted');
-            processImage(e.target);
-        }
-    }
 
     /*
-    Used to handle 'DOMNodeRemoved' event on the document.
+    Used to handle images removed from the document.
     EG: some sites can remove images to the page using JS.
     */
-    function handleNodeRemoved(e) {
-        const tag = e.target.tagName;
+    function destroyTextboxes(node) {
+        const tag = node.tagName;
         if (['IMG', 'CANVAS'].includes(tag)) {
-            debug('image removed');
+            debug('destroyTextboxes', node);
             const topop = [];
             images.forEach((ptr, idx) => {
-                if (ptr.img === e.target) {
+                if (ptr.img === node) {
                     topop.push(idx);
                     ptr.boxes.forEach((box) => {
                         box.remove();
@@ -239,9 +232,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
     /*
     Enable the addon on the current tab.
      - process all img/canvas already on the page
-     - add event listeners
-        - 'DOMNodeInserted': process new images added to the page
-        - 'DOMNodeRemoved': remove all the textboxes if an image is removed
+     - enable the observer to listen for changes in the DOM
     */
     function enableOCR() {
         if (OCR === true) {
@@ -255,8 +246,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         document.querySelectorAll('canvas').forEach((canvas) => {
             processImage(canvas);
         })
-        document.addEventListener('DOMNodeInserted', handleNodeInserted)
-        document.addEventListener('DOMNodeRemoved', handleNodeRemoved)
+        observer.observe(document.body, {childList: true, subtree: true});
     }
 
     /*
@@ -271,8 +261,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
         }
         OCR = false;
         info('disabling OCR');
-        document.removeEventListener('DOMNodeInserted', handleNodeInserted);
-        document.removeEventListener('DOMNodeRemoved', handleNodeRemoved);
+        observer.disconnect();
         
         debug(images);
         var i = images.length;

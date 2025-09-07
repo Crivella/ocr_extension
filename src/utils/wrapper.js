@@ -26,23 +26,6 @@ export const wrapperClass = "ocr-wrapper";
 export const wrappedClass = "ocr-wrapped";
 
 /*
-Generate a working clone of an image/canvas node.
-*/
-function cloneNode(node) {
-    const res = node.cloneNode();
-    if (node.tagName == 'IMG') {
-        res.src = node.src;
-    } else if (node.tagName == 'CANVAS') {
-        res.width = node.width;
-        res.height = node.height;
-        const ctx = res.getContext('2d');
-        ctx.drawImage(node, 0, 0, node.width, node.height);
-    }
-
-    return res;
-}
-
-/*
 Wrap an image node with a div with ocr-wrapper class.
 Add the ocr-wrapped class to the image node.
 */

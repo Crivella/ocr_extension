@@ -2,6 +2,13 @@
 
 List of changes between versions
 
+## 0.3.4
+
+- Should preserve listeners on wrapped images by moving them instead of cloning them
+- Can wrap a single image opened in the browser (either from file system or with `open image in new tab`) without collapsing it to a single dot
+- Fixed a regression were changing advanced properties was not being actually done
+- Improved the MutationObserver (see #14) to better track more possible ways for images to get added/changed into a page
+
 ## 0.3.3
 
 - Switching from `DOMNodeInserted` and `DOMNodeRemoved` events to a `MutationObserver` to handle changes in the DOM

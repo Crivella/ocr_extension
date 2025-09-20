@@ -296,6 +296,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         case 'set-selected-options': {
             debug('setting selected options', msg.options);
+            SELECTED_OPTIONS = msg.options;
             browser.storage.local.set({selectedOptions: SELECTED_OPTIONS});
             BroadcastMessage({
                 type: 'set-selected-options',

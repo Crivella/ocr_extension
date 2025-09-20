@@ -45,22 +45,71 @@ Function used to avoid multiple injection (cleaner than using an if?)
     var showTranslated = true;
     var orientation = 'horizontal-tb';
 
+    // Set to track successfully processed images to avoid reprocessing
+    const processedImages = new WeakSet();
+    // Set to track images currently being processed to avoid concurrent processing
+    const processingImages = new WeakSet();
+
+    // Helper function to check if a node is an image
+    function isImageNode(node) {
+        return node.nodeType === Node.ELEMENT_NODE && 
+               (node.tagName === 'IMG' || node.tagName === 'CANVAS');
+    }
+
+    // Helper function to process all images in a subtree
+    function processImagesInSubtree(root) {
+        if (isImageNode(root)) {
+            if (!processedImages.has(root)) {
+                debug('direct image added', root);
+                processImage(root);
+            }
+            return;
+        }
+        
+        // Process all img and canvas elements in the subtree
+        const images = root.querySelectorAll ? root.querySelectorAll('img, canvas') : [];
+        images.forEach((img) => {
+            if (!processedImages.has(img)) {
+                debug('new image found via querySelectorAll in subtree', img);
+                processImage(img);
+            }
+        });
+    }
+
     var observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach((node) => {
-                    if (node.tagName === 'IMG' || node.tagName === 'CANVAS') {
-                        debug('image added', node);
-                        processImage(node);
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Check for images within the added node
+                        processImagesInSubtree(node);
                     }
                 });
+                
                 mutation.removedNodes.forEach((node) => {
-                    if (node.tagName === 'IMG' || node.tagName === 'CANVAS') {
-                        debug('image removed', node);
-                        destroyTextboxes(node);
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (isImageNode(node)) {
+                            debug('direct image removed', node);
+                            destroyTextboxes(node);
+                        } else {
+                            // Handle images within removed nodes
+                            const images = node.querySelectorAll ? node.querySelectorAll('img, canvas') : [];
+                            images.forEach((img) => {
+                                debug('image removed via subtree', img);
+                                destroyTextboxes(img);
+                            });
+                        }
                     }
-                }
-                )
+                });
+            }
+            // Also watch for attribute changes that might affect image loading
+            else if (mutation.type === 'attributes' && 
+                     isImageNode(mutation.target) && 
+                     (mutation.attributeName === 'src' || mutation.attributeName === 'data-src')) {
+                debug('image src/data-src changed', mutation.target);
+                // Remove from processed set so it can be reprocessed
+                processedImages.delete(mutation.target);
+                processImage(mutation.target);
             }
         });
     });
@@ -109,7 +158,6 @@ Function used to avoid multiple injection (cleaner than using an if?)
         })
     }
 
-
     /*
     Apply the OCR result to the image in case of an error
      - Wrap the image in a div
@@ -148,58 +196,116 @@ Function used to avoid multiple injection (cleaner than using an if?)
     */
     async function processImage(img) {
         debug('PROCESSING', img);
-        // This is the entire image size (should be atleas 10k pixels)
-        if ( img.width*img.height < 100*100 ) {
-            info('image too small', img.width, img.height);
+        
+        // Skip if already processed successfully
+        if (processedImages.has(img)) {
+            debug('image already processed successfully, skipping', img);
             return;
         }
         
-        // Get a blob from the image
-        const base64data = await base64FromAny(img);
-
-        const md5Hash = md5(base64data);
-
-        let error = undefined;
-
-        // Change image CSS while loading OCR and if error
-        var ocr;
-        img.classList.add('ocr-loading');
+        // Skip if currently being processed to avoid concurrent processing
+        if (processingImages.has(img)) {
+            debug('image currently being processed, skipping', img);
+            return;
+        }
+        
+        // Mark as being processed
+        processingImages.add(img);
+        
         try {
-            ocr = await getOcr(md5Hash, base64data, OPTIONS);
-        } catch (err) {
-            log_error(err);
-            if (err.code === "ERR_NETWORK") {
-                error = 'Network error';
-            } else if (err.code === "ERR_BAD_RESPONSE") {
-                let code = err.response.status;
-                let msg = err.response.data.error;
-                error = `Error [${code}]: ${msg}`;
-            } else {
-                error = 'Unknown error';
+            // Wait for image to load if not already loaded
+            if (img.tagName === 'IMG' && !img.complete) {
+                debug('waiting for image to load', img);
+                await new Promise((resolve) => {
+                    const onLoad = () => {
+                        img.removeEventListener('load', onLoad);
+                        img.removeEventListener('error', onLoad);
+                        resolve();
+                    };
+                    img.addEventListener('load', onLoad);
+                    img.addEventListener('error', onLoad);
+                    // Fallback timeout
+                    setTimeout(resolve, 5000);
+                });
             }
+            
+            // This is the entire image size (should be at least 10k pixels)
+            if ( img.width*img.height < 100*100 ) {
+                info('image too small', img.width, img.height);
+                // Don't mark as processed since it might resize later
+                return;
+            }
+            
+            let base64data;
+            try {
+                // Get a blob from the image
+                base64data = await base64FromAny(img);
+            } catch (err) {
+                log_error('Failed to convert image to base64:', err);
+                // Don't mark as processed, might work later
+                return;
+            }
+
+            const md5Hash = md5(base64data);
+
+            let error = undefined;
+
+            // Change image CSS while loading OCR and if error
+            var ocr;
+            img.classList.add('ocr-loading');
+            try {
+                ocr = await getOcr(md5Hash, base64data, OPTIONS);
+            } catch (err) {
+                log_error(err);
+                if (err.code === "ERR_NETWORK") {
+                    error = 'Network error';
+                } else if (err.code === "ERR_BAD_RESPONSE") {
+                    let code = err.response.status;
+                    let msg = err.response.data.error;
+                    error = `Error [${code}]: ${msg}`;
+                } else {
+                    error = 'Unknown error';
+                }
+            } finally {
+                img.classList.remove('ocr-loading');
+            }
+
+            let newImg, wrapper;
+            try {
+                [newImg, wrapper] = wrapImage(img);
+            } catch (err) {
+                log_error('Failed to wrap image:', err);
+                // Don't mark as processed, might work later
+                return;
+            }
+
+            if (error) {
+                applyError(newImg, wrapper, error);
+                newImg.classList.add('ocr-error');
+                // Don't mark as processed for errors - allow retry
+            } else {
+                applyOcr(newImg, wrapper, ocr);
+                // Only mark as successfully processed after successful OCR
+                processedImages.add(img);
+            }
+            newImg.addEventListener('load', onImageReload);
+            
         } finally {
-            img.classList.remove('ocr-loading');
+            // Always remove from processing set when done
+            processingImages.delete(img);
         }
-
-        const [newImg, wrapper] = wrapImage(img);
-
-        if (error) {
-            applyError(newImg, wrapper, error);
-            newImg.classList.add('ocr-error');
-        } else {
-            applyOcr(newImg, wrapper, ocr);
-        }
-        newImg.addEventListener('load', onImageReload);
     }
 
     /*
     Used to handle 'load' event on images that are already loaded.
-    EG: some sites can replace an image with a new one using JS, by modifing the src attribute.
+    EG: some sites can replace an image with a new one using JS, by modifying the src attribute.
     */
     function onImageReload(e) {
         const img = e.target;
+        // Remove from both processed and processing sets so it can be reprocessed
+        processedImages.delete(img);
+        processingImages.delete(img);
         destroyTextboxes(img);
-
         processImage(img);
     }
 
@@ -211,6 +317,10 @@ Function used to avoid multiple injection (cleaner than using an if?)
         const tag = node.tagName;
         if (['IMG', 'CANVAS'].includes(tag)) {
             debug('destroyTextboxes', node);
+            // Remove from both processed and processing sets
+            processedImages.delete(node);
+            processingImages.delete(node);
+            
             const topop = [];
             images.forEach((ptr, idx) => {
                 if (ptr.img === node) {
@@ -222,9 +332,8 @@ Function used to avoid multiple injection (cleaner than using an if?)
             })
 
             topop.sort((a, b) => b - a);
-            topop.forEach((ptr) => {
-                const i = images.indexOf(ptr);
-                images.splice(i, 1);
+            topop.forEach((idx) => {
+                images.splice(idx, 1);
             })
         }
     }
@@ -240,13 +349,38 @@ Function used to avoid multiple injection (cleaner than using an if?)
         }
         OCR = true;
         info('enabling OCR');
+        
+        // Process existing images
         document.querySelectorAll('img').forEach((img) => {
             processImage(img);
         })
         document.querySelectorAll('canvas').forEach((canvas) => {
             processImage(canvas);
         })
-        observer.observe(document.body, {childList: true, subtree: true});
+        
+        // Start observing with more comprehensive options
+        observer.observe(document.body, {
+            childList: true, 
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['src', 'data-src', 'class']
+        });
+        
+        // Also set up a periodic check for dynamically loaded images
+        // This is a fallback for cases where MutationObserver might miss something
+        const periodicCheck = setInterval(() => {
+            if (!OCR) {
+                clearInterval(periodicCheck);
+                return;
+            }
+            
+            document.querySelectorAll('img, canvas').forEach((img) => {
+                if (!processedImages.has(img) && !processingImages.has(img)) {
+                    debug('found unprocessed image during periodic check', img);
+                    processImage(img);
+                }
+            });
+        }, 15000);
     }
 
     /*
@@ -272,6 +406,8 @@ Function used to avoid multiple injection (cleaner than using an if?)
                 textbox.remove();
             })
             ptr.img.removeEventListener('load', onImageReload);
+            processedImages.delete(ptr.img);
+            processingImages.delete(ptr.img);
             unwrapImage(ptr.img);
             images.splice(i, 1);
         }

@@ -225,7 +225,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
                     img.addEventListener('load', onLoad);
                     img.addEventListener('error', onLoad);
                     // Fallback timeout
-                    setTimeout(resolve, 15000);
+                    setTimeout(resolve, 5000);
                 });
             }
             
@@ -380,7 +380,7 @@ Function used to avoid multiple injection (cleaner than using an if?)
                     processImage(img);
                 }
             });
-        }, 2000);
+        }, 15000);
     }
 
     /*
